@@ -1,0 +1,224 @@
+# swissknife-productivity — Bouwopdracht
+
+> **Projectnaam:** swissknife-productivity  
+> **Versie:** 0.1  
+> **Status:** `concept`  
+> **Laatste update:** 2026-08-09  
+> **Aangemaakt door:** TITO (projectmanager: Chad / Hermes Agent)  
+
+---
+
+## 1. Samenvatting
+
+Een lichtgewicht, zelf-gehoste productiviteitsapplicatie met samengebundelde functionaliteit: Kanban-bord, notities, dagelijkse taken, pomodoro-timer, wiki en code snippets. De applicatie is bereikbaar via een responsive webinterface (SvelteKit → REST API) **en** via een **MCP-server** voor Hermes Agent. **Hermes Agent is de primaire co-pilot** — hij krijgt gestructureerde tools via MCP in plaats van rauwe curl-calls, en kan alle modules volledig aansturen: aanmaken, editen, verwijderen van notities, kanban-kaarten, taken, pomodoro-sessies, snippets en wiki-pagina's.
+
+---
+
+## 2. Doel & Use Cases
+
+- **Doel:** Persoonlijke productiviteitstool — alles-in-één voor dagelijks gebruik.
+- **Primary user:** Eén gebruiker (TITO).
+- **Use cases:**
+  1. Dagelijkse notities, activiteiten en taken bijhouden.
+  2. Projecten beheren via een Kanban-bord.
+  3. Kennis opslaan in een wiki.
+  4. Code snippets bewaren en terugvinden.
+  5. Focus-werk doen met een pomodoro-timer.
+  6. **Hermes Agent stuurt alles aan via MCP** — gestructureerde tools (JSON Schema) voor aanmaken, lezen, wijzigen en verwijderen in elke module, zonder curl of URL-kennis.
+
+---
+
+## 3. Functionaliteit
+
+### 3.1 Must-have (MVP)
+
+- [ ] **Kanban-bord** — kaarten aanmaken, bewerken, verplaatsen (todo → doing → done)
+- [ ] **Notities** — aanmaken, bewerken, verwijderen
+- [ ] **Dagelijkse taken** — takenlijst per dag met afvink-functionaliteit
+- [ ] **Pomodoro-timer** — starten, stoppen, resetten; instelbare focus/pauze-tijden
+- [ ] **Wiki** — markdown-pagina's aanmaken, bewerken en doorzoeken
+- [ ] **Code snippets** — code opslaan met syntax highlighting en taallabel
+- [ ] **REST API** — endpoints voor SvelteKit frontend (`/api/notes`, `/api/kanban`, `/api/tasks`, `/api/pomodoro`, `/api/snippets`, `/api/wiki`)
+  - Volledige CRUD per module (GET, POST, PUT, DELETE)
+  - JSON-responses, geen aparte auth-laag voor MVP (single-user)
+- [ ] **MCP Server** — Hermes Agent krijgt tools met JSON Schema i.p.v. rauwe REST-calls
+  - Één Python MCP-server (`backend/mcp/`) die dezelfde database en modellen gebruikt als de REST API
+  - Tools per module: `mcp_swissknife_notes_create`, `mcp_swissknife_tasks_edit`, etc.
+  - Hermes config: `mcp_servers.swissknife.command: "uv run python -m backend.mcp.server"`
+  - Geen aparte HTTP-calls nodig — Hermes roept tools direct aan
+  - Herbruikt business-logic uit de backend; geen dubbele code
+- [ ] **Responsive UI** — werkt op desktop, mobiel en tablet
+- [ ] **Docker Compose** — één `docker-compose up` en de app draait
+
+### 3.2 Nice-to-have
+
+(Wordt later ingevuld bij fine-tuning.)
+
+### 3.3 Toekomst
+
+(Wordt later ingevuld.)
+
+---
+
+## 4. Tech Stack
+
+- **Backend:** Python + FastAPI + **MCP Python SDK** (`pip install mcp`)
+- **Frontend:** SvelteKit (meest reactieve framework, minimale bundle)
+- **Database:** SQLite (lokaal, geen aparte server)
+- **APIs / externe diensten:**
+  - REST API voor SvelteKit frontend
+  - **MCP Server voor Hermes Agent** (tools i.p.v. rauwe HTTP)
+  - Geen externe API-afhankelijkheden
+- **Containerisatie:** Docker + docker-compose
+- **Versiebeheer:** Publieke git repository (GitHub)
+
+---
+
+## 5. Structuur (project tree)
+
+```
+skp/
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py            # FastAPI entry point
+│   │   ├── database.py        # SQLite setup & connection
+│   │   ├── models/            # SQLAlchemy / database modellen
+│   │   │   ├── __init__.py
+│   │   │   ├── kanban.py
+│   │   │   ├── notes.py
+│   │   │   ├── tasks.py
+│   │   │   ├── wiki.py
+│   │   │   └── snippets.py
+│   │   └── routes/            # API endpoints (voor SvelteKit)
+│   │       ├── __init__.py
+│   │       ├── kanban.py
+│   │       ├── notes.py
+│   │       ├── tasks.py
+│   │       ├── wiki.py
+│   │       ├── snippets.py
+│   │       └── pomodoro.py
+│   │   └── mcp/               # MCP Server voor Hermes Agent
+│   │       ├── __init__.py
+│   │       ├── server.py      # MCP entry point (FastMCP)
+│   │       ├── tools_notes.py
+│   │       ├── tools_kanban.py
+│   │       ├── tools_tasks.py
+│   │       ├── tools_pomodoro.py
+│   │       ├── tools_snippets.py
+│   │       └── tools_wiki.py
+│   ├── requirements.txt
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── routes/
+│   │   │   ├── +page.svelte        # Dashboard / hub
+│   │   │   ├── kanban/
+│   │   │   ├── notes/
+│   │   │   ├── tasks/
+│   │   │   ├── wiki/
+│   │   │   ├── snippets/
+│   │   │   └── pomodoro/
+│   │   ├── lib/
+│   │   │   ├── components/         # Herbruikbare UI-componenten
+│   │   │   └── api/               # API-client (fetch naar backend)
+│   │   └── app.html
+│   ├── static/
+│   ├── package.json
+│   ├── svelte.config.js
+│   ├── vite.config.ts
+│   └── Dockerfile
+├── docker-compose.yml
+├── docs/
+│   └── API.md              # API-documentatie
+├── .gitignore
+└── README.md
+```
+
+---
+
+## 6. Input / Output
+
+- **Input:** Browser (webinterface op mobiel, tablet en desktop) + Hermes Agent (MCP-tools)
+- **Output:** Webinterface (SvelteKit frontend) + JSON-responses via REST API + MCP-tool results
+
+---
+
+## 7. Randvoorwaarden & Constraints
+
+- [x] Draait in **Docker** (self-hosted op Unraid NAS)
+- [x] Start met één commando: `docker-compose up`
+- [x] Draait op **poort 4442**
+- [x] **SQLite** voor data-opslag (lokaal, geen netwerk-db)
+- [x] **REST API** — endpoints voor SvelteKit frontend
+- [x] **MCP Server** — Hermes Agent krijgt tools via MCP i.p.v. rauwe HTTP
+- [x] Gedeelde database en modellen (REST API + MCP server gebruiken zelfde SQLite & code)
+- [x] **Responsive UI** — compatible met mobiel, tablet en desktop
+- [x] **Publieke git repository** — code staat openbaar op GitHub
+- [x] Geen externe API-dependencies
+- [x] Lichtgewicht — minimale resource usage (Unraid-friendly)
+
+---
+
+## 8. Acceptatiecriteria
+
+De app is klaar wanneer:
+
+1. [ ] `docker-compose up` start de volledige app (backend + frontend)
+2. [ ] Webinterface is bereikbaar op `http://<host>:4442`
+3. [ ] Kanban-bord werkt: kaarten aanmaken, bewerken, verplaatsen
+4. [ ] Notities aanmaken, bewerken en verwijderen
+5. [ ] Dagelijkse taken bijhouden en afvinken
+6. [ ] Pomodoro-timer starten, stoppen en resetten
+7. [ ] Wiki-pagina's aanmaken, bewerken en doorzoeken (markdown)
+8. [ ] Code snippets opslaan met syntax highlighting
+9. [ ] Responsive UI: werkt op mobiel (touch), tablet en desktop
+10. [ ] **MCP Server** is actief — Hermes Agent kan verbinden en tools ontdekken (`hermes mcp test swissknife`)
+11. [ ] Hermes Agent kan via MCP-tools in elke module **aanmaken, editen, uitlezen en verwijderen**:
+    - Notities: aanmaken, editen en verwijderen
+    - Kanban: kaarten aanmaken, editen, verplaatsen en verwijderen
+    - Taken: aanmaken, editen, afvinken en verwijderen
+    - Pomodoro: starten, stoppen, resetten en status uitlezen
+    - Snippets: aanmaken, editen en verwijderen
+    - Wiki: pagina's aanmaken, editen en verwijderen
+12. [ ] **Alle functionaliteit is benaderbaar en bruikbaar via Hermes Agent** — Hermes kan in elke module (tasks, notities, kanban, snippets, pomodoro, wiki) ten minste: aanmaken, editen, uitlezen en verwijderen
+13. [ ] MCP-tools zijn **prefixed met `mcp_swissknife_`** — tool names zijn leesbaar voor de LLM
+14. [ ] MCP Server staat geregistreerd in `hermes mcp list` en tools zijn zichtbaar
+
+---
+
+## 9. Architectuur — Hoe de lagen samenwerken
+
+```mermaid
+flowchart LR
+    A[SvelteKit Frontend] -->|REST /api/*| B[FastAPI]
+    C[Hermes Agent] -->|MCP Tools| D[MCP Server<br>backend/mcp/]
+    B --> E[(SQLite)]
+    D --> E
+    B --> F[Business Logic<br>backend/models/]
+    D --> F
+    F --> E
+```
+
+- **FastAPI** serveert `/api/*` endpoints voor de SvelteKit frontend
+- **MCP Server** (`backend/mcp/server.py`) biedt dezelfde business-logic aan als gestructureerde tools voor Hermes
+- Beide delen dezelfde **SQLite database**, **modellen** en **business-logic** — geen duplicatie
+
+---
+
+## 10. Notities / Ideeën
+
+- Naam "swissknife-productivity" verwijst naar multitool-achtige bundeling (Zwitsers zakmes); folder-afkorting: `skp`.
+- De app is primair voor eigen gebruik — geen multi-user, geen permissies.
+- **Hermes Agent is primaire consument via MCP**; de REST API is er voor de frontend, niet voor Hermes.
+- MCP-server draait als **stdio subprocess** van Hermes (geen extra poort, geen netwerk).
+- MCP tools gebruiken FastMCP (`from mcp.server.fastmcp import FastMCP`) — minimale boilerplate.
+- (Aan te vullen tijdens ontwikkeling.)
+
+---
+
+## 11. Changelog
+
+| Datum | Versie | Wijziging | Door |
+|-------|--------|-----------|------|
+| 2026-08-09 | 0.1 | Initiële opdracht — MVP-definitie | TITO + Chad |
