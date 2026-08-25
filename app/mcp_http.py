@@ -18,12 +18,14 @@ def _api(method, path, data=None):
         req = urllib.request.Request(url, method=method)
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            return json.loads(resp.read().decode()) if resp.status != 204 else json.dumps({"deleted": True})
+            if resp.status == 204:
+                return {"deleted": True}
+            return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         detail = e.read().decode()
-        return json.dumps({"error": f"HTTP {e.code}: {detail}"})
+        return {"error": f"HTTP {e.code}: {detail}"}
     except Exception as e:
-        return json.dumps({"error": str(e)})
+        return {"error": str(e)}
 
 
 def create_server():

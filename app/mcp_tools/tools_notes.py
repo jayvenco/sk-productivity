@@ -1,24 +1,23 @@
 """
 MCP tools for the Notes module.
 """
+import json
 from app.database import SessionLocal
+from app.mcp_tools._shared import _format_item, _format_list, _format_error, _format_deleted
 from app.models.notes import Note
 
 
 def _note_to_json(note):
-    return (
-        f'{{"id":{note.id},"title":"{_escape(note.title)}","content":"{_escape(note.content)}",'
-        f'"created_at":"{note.created_at.isoformat()}","updated_at":"{note.updated_at.isoformat()}"}}'
-    )
+    return _format_item({
+        "id": note.id, "title": note.title, "content": note.content,
+        "created_at": note.created_at, "updated_at": note.updated_at,
+    })
 
 
 def _notes_to_json(notes):
-    items = ",".join(_note_to_json(n) for n in notes)
-    return f'{{"items":[{items}],"total":{len(notes)}}}'
+    return _format_list([json.loads(_note_to_json(n)) for n in notes])
 
 
-def _escape(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
 
 
 def register_notes_tools(mcp, mcp_prefix="swissknife"):
@@ -39,7 +38,7 @@ def register_notes_tools(mcp, mcp_prefix="swissknife"):
         try:
             note = db.query(Note).filter(Note.id == note_id).first()
             if not note:
-                return '{"error": "Note not found"}'
+                return _format_error("Note not found")
             return _note_to_json(note)
         finally:
             db.close()
@@ -64,7 +63,7 @@ def register_notes_tools(mcp, mcp_prefix="swissknife"):
         try:
             note = db.query(Note).filter(Note.id == note_id).first()
             if not note:
-                return '{"error": "Note not found"}'
+                return _format_error("Note not found")
             if title is not None:
                 note.title = title
             if content is not None:
@@ -82,9 +81,9 @@ def register_notes_tools(mcp, mcp_prefix="swissknife"):
         try:
             note = db.query(Note).filter(Note.id == note_id).first()
             if not note:
-                return '{"error": "Note not found"}'
+                return _format_error("Note not found")
             db.delete(note)
             db.commit()
-            return f'{{"deleted": true, "id": {note_id}}}'
+            return _format_deleted(note_id)
         finally:
             db.close()

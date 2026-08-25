@@ -1,25 +1,23 @@
 """
 MCP tools for the Wiki module.
 """
+import json
 from app.database import SessionLocal
+from app.mcp_tools._shared import _format_item, _format_list, _format_error, _format_deleted
 from app.models.wiki import WikiPage
 
 
 def _page_to_json(page):
-    return (
-        f'{{"id":{page.id},"title":"{_escape(page.title)}","slug":"{_escape(page.slug)}",'
-        f'"content":"{_escape(page.content)}",'
-        f'"created_at":"{page.created_at.isoformat()}","updated_at":"{page.updated_at.isoformat()}"}}'
-    )
+    return _format_item({
+        "id": page.id, "title": page.title, "slug": page.slug, "content": page.content,
+        "created_at": page.created_at, "updated_at": page.updated_at,
+    })
 
 
 def _pages_to_json(pages):
-    items = ",".join(_page_to_json(p) for p in pages)
-    return f'{{"items":[{items}],"total":{len(pages)}}}'
+    return _format_list([json.loads(_page_to_json(p)) for p in pages])
 
 
-def _escape(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
 
 
 def register_wiki_tools(mcp, mcp_prefix="swissknife"):
@@ -40,7 +38,7 @@ def register_wiki_tools(mcp, mcp_prefix="swissknife"):
         try:
             page = db.query(WikiPage).filter(WikiPage.id == page_id).first()
             if not page:
-                return '{"error": "Wiki page not found"}'
+                return _format_error("Wiki page not found")
             return _page_to_json(page)
         finally:
             db.close()
@@ -52,7 +50,7 @@ def register_wiki_tools(mcp, mcp_prefix="swissknife"):
         try:
             page = db.query(WikiPage).filter(WikiPage.slug == slug).first()
             if not page:
-                return '{"error": "Wiki page not found"}'
+                return _format_error("Wiki page not found")
             return _page_to_json(page)
         finally:
             db.close()
@@ -77,7 +75,7 @@ def register_wiki_tools(mcp, mcp_prefix="swissknife"):
         try:
             existing = db.query(WikiPage).filter(WikiPage.slug == slug).first()
             if existing:
-                return '{"error": "A page with this slug already exists"}'
+                return _format_error("A page with this slug already exists")
             page = WikiPage(title=title, slug=slug, content=content)
             db.add(page)
             db.commit()
@@ -93,13 +91,13 @@ def register_wiki_tools(mcp, mcp_prefix="swissknife"):
         try:
             page = db.query(WikiPage).filter(WikiPage.id == page_id).first()
             if not page:
-                return '{"error": "Wiki page not found"}'
+                return _format_error("Wiki page not found")
             if title is not None:
                 page.title = title
             if slug is not None:
                 existing = db.query(WikiPage).filter(WikiPage.slug == slug, WikiPage.id != page_id).first()
                 if existing:
-                    return '{"error": "A page with this slug already exists"}'
+                    return _format_error("A page with this slug already exists")
                 page.slug = slug
             if content is not None:
                 page.content = content
@@ -116,9 +114,9 @@ def register_wiki_tools(mcp, mcp_prefix="swissknife"):
         try:
             page = db.query(WikiPage).filter(WikiPage.id == page_id).first()
             if not page:
-                return '{"error": "Wiki page not found"}'
+                return _format_error("Wiki page not found")
             db.delete(page)
             db.commit()
-            return f'{{"deleted": true, "id": {page_id}}}'
+            return _format_deleted(page_id)
         finally:
             db.close()

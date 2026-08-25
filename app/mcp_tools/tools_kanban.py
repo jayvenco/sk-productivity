@@ -1,25 +1,24 @@
 """
 MCP tools for the Kanban module.
 """
+import json
 from app.database import SessionLocal
+from app.mcp_tools._shared import _format_item, _format_list, _format_error, _format_deleted
 from app.models.kanban import KanbanCard, KanbanStatus
 
 
 def _card_to_json(card):
-    return (
-        f'{{"id":{card.id},"title":"{_escape(card.title)}","description":"{_escape(card.description)}",'
-        f'"status":"{card.status.value}","position":{card.position},'
-        f'"created_at":"{card.created_at.isoformat()}","updated_at":"{card.updated_at.isoformat()}"}}'
-    )
+    return _format_item({
+        "id": card.id, "title": card.title, "description": card.description,
+        "status": card.status.value, "position": card.position,
+        "created_at": card.created_at, "updated_at": card.updated_at,
+    })
 
 
 def _cards_to_json(cards):
-    items = ",".join(_card_to_json(c) for c in cards)
-    return f'{{"items":[{items}],"total":{len(cards)}}}'
+    return _format_list([json.loads(_card_to_json(c)) for c in cards])
 
 
-def _escape(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
 
 
 def register_kanban_tools(mcp, mcp_prefix="swissknife"):
@@ -40,7 +39,7 @@ def register_kanban_tools(mcp, mcp_prefix="swissknife"):
         try:
             card = db.query(KanbanCard).filter(KanbanCard.id == card_id).first()
             if not card:
-                return '{"error": "Kanban card not found"}'
+                return _format_error("Kanban card not found")
             return _card_to_json(card)
         finally:
             db.close()
@@ -65,7 +64,7 @@ def register_kanban_tools(mcp, mcp_prefix="swissknife"):
         try:
             card = db.query(KanbanCard).filter(KanbanCard.id == card_id).first()
             if not card:
-                return '{"error": "Kanban card not found"}'
+                return _format_error("Kanban card not found")
             if title is not None:
                 card.title = title
             if description is not None:
@@ -87,10 +86,10 @@ def register_kanban_tools(mcp, mcp_prefix="swissknife"):
         try:
             card = db.query(KanbanCard).filter(KanbanCard.id == card_id).first()
             if not card:
-                return '{"error": "Kanban card not found"}'
+                return _format_error("Kanban card not found")
             db.delete(card)
             db.commit()
-            return f'{{"deleted": true, "id": {card_id}}}'
+            return _format_deleted(card_id)
         finally:
             db.close()
 
@@ -101,7 +100,7 @@ def register_kanban_tools(mcp, mcp_prefix="swissknife"):
         try:
             card = db.query(KanbanCard).filter(KanbanCard.id == card_id).first()
             if not card:
-                return '{"error": "Kanban card not found"}'
+                return _format_error("Kanban card not found")
             card.status = KanbanStatus(status)
             card.position = position
             db.commit()

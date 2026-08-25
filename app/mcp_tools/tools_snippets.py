@@ -1,25 +1,23 @@
 """
 MCP tools for the Snippets module.
 """
+import json
 from app.database import SessionLocal
+from app.mcp_tools._shared import _format_item, _format_list, _format_error, _format_deleted
 from app.models.snippets import Snippet
 
 
 def _snippet_to_json(snippet):
-    return (
-        f'{{"id":{snippet.id},"title":"{_escape(snippet.title)}","language":"{_escape(snippet.language)}",'
-        f'"code":"{_escape(snippet.code)}",'
-        f'"created_at":"{snippet.created_at.isoformat()}","updated_at":"{snippet.updated_at.isoformat()}"}}'
-    )
+    return _format_item({
+        "id": snippet.id, "title": snippet.title, "language": snippet.language, "code": snippet.code,
+        "created_at": snippet.created_at, "updated_at": snippet.updated_at,
+    })
 
 
 def _snippets_to_json(snippets):
-    items = ",".join(_snippet_to_json(s) for s in snippets)
-    return f'{{"items":[{items}],"total":{len(snippets)}}}'
+    return _format_list([json.loads(_snippet_to_json(s)) for s in snippets])
 
 
-def _escape(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
 
 
 def register_snippets_tools(mcp, mcp_prefix="swissknife"):
@@ -40,7 +38,7 @@ def register_snippets_tools(mcp, mcp_prefix="swissknife"):
         try:
             snippet = db.query(Snippet).filter(Snippet.id == snippet_id).first()
             if not snippet:
-                return '{"error": "Snippet not found"}'
+                return _format_error("Snippet not found")
             return _snippet_to_json(snippet)
         finally:
             db.close()
@@ -65,7 +63,7 @@ def register_snippets_tools(mcp, mcp_prefix="swissknife"):
         try:
             snippet = db.query(Snippet).filter(Snippet.id == snippet_id).first()
             if not snippet:
-                return '{"error": "Snippet not found"}'
+                return _format_error("Snippet not found")
             if title is not None:
                 snippet.title = title
             if language is not None:
@@ -85,9 +83,9 @@ def register_snippets_tools(mcp, mcp_prefix="swissknife"):
         try:
             snippet = db.query(Snippet).filter(Snippet.id == snippet_id).first()
             if not snippet:
-                return '{"error": "Snippet not found"}'
+                return _format_error("Snippet not found")
             db.delete(snippet)
             db.commit()
-            return f'{{"deleted": true, "id": {snippet_id}}}'
+            return _format_deleted(snippet_id)
         finally:
             db.close()

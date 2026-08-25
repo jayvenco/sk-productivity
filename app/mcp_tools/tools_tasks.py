@@ -1,26 +1,24 @@
 """
 MCP tools for the Tasks module.
 """
+import json
 from app.database import SessionLocal
+from app.mcp_tools._shared import _format_item, _format_list, _format_error, _format_deleted
 from app.models.tasks import Task, TaskStatus
 
 
 def _task_to_json(task):
-    due = f'"{task.due_date.isoformat()}"' if task.due_date else "null"
-    return (
-        f'{{"id":{task.id},"title":"{_escape(task.title)}","description":"{_escape(task.description)}",'
-        f'"status":"{task.status.value}","due_date":{due},'
-        f'"created_at":"{task.created_at.isoformat()}","updated_at":"{task.updated_at.isoformat()}"}}'
-    )
+    return _format_item({
+        "id": task.id, "title": task.title, "description": task.description,
+        "status": task.status.value, "due_date": task.due_date,
+        "created_at": task.created_at, "updated_at": task.updated_at,
+    })
 
 
 def _tasks_to_json(tasks):
-    items = ",".join(_task_to_json(t) for t in tasks)
-    return f'{{"items":[{items}],"total":{len(tasks)}}}'
+    return _format_list([json.loads(_task_to_json(t)) for t in tasks])
 
 
-def _escape(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
 
 
 def register_tasks_tools(mcp, mcp_prefix="swissknife"):
@@ -41,7 +39,7 @@ def register_tasks_tools(mcp, mcp_prefix="swissknife"):
         try:
             task = db.query(Task).filter(Task.id == task_id).first()
             if not task:
-                return '{"error": "Task not found"}'
+                return _format_error("Task not found")
             return _task_to_json(task)
         finally:
             db.close()
@@ -66,7 +64,7 @@ def register_tasks_tools(mcp, mcp_prefix="swissknife"):
         try:
             task = db.query(Task).filter(Task.id == task_id).first()
             if not task:
-                return '{"error": "Task not found"}'
+                return _format_error("Task not found")
             if title is not None:
                 task.title = title
             if description is not None:
@@ -86,9 +84,9 @@ def register_tasks_tools(mcp, mcp_prefix="swissknife"):
         try:
             task = db.query(Task).filter(Task.id == task_id).first()
             if not task:
-                return '{"error": "Task not found"}'
+                return _format_error("Task not found")
             db.delete(task)
             db.commit()
-            return f'{{"deleted": true, "id": {task_id}}}'
+            return _format_deleted(task_id)
         finally:
             db.close()

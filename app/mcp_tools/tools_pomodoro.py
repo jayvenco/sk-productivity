@@ -1,17 +1,18 @@
 """
 MCP tools for the Pomodoro module.
 """
+import json
 from datetime import datetime, timezone
 from app.database import SessionLocal
+from app.mcp_tools._shared import _format_item, _format_list, _format_error, _format_deleted
 from app.models.pomodoro import PomodoroSession
 
 
 def _session_to_json(s):
-    ended = f'"{s.ended_at.isoformat()}"' if s.ended_at else "null"
-    return (
-        f'{{"id":{s.id},"session_type":"{s.session_type}","duration_minutes":{s.duration_minutes},'
-        f'"started_at":"{s.started_at.isoformat()}","ended_at":{ended},"completed":{str(s.completed).lower()}}}'
-    )
+    return _format_item({
+        "id": s.id, "session_type": s.session_type, "duration_minutes": s.duration_minutes,
+        "started_at": s.started_at, "ended_at": s.ended_at, "completed": s.completed,
+    })
 
 
 def register_pomodoro_tools(mcp, mcp_prefix="swissknife"):
@@ -23,8 +24,9 @@ def register_pomodoro_tools(mcp, mcp_prefix="swissknife"):
             active = db.query(PomodoroSession).filter(PomodoroSession.completed == False)\
                 .order_by(PomodoroSession.started_at.desc()).first()
             if active:
-                return f'{{"active":true,"session":{_session_to_json(active)}}}'
-            return '{"active":false,"session":null}'
+                s = json.loads(_session_to_json(active))
+                return json.dumps({"active": True, "session": s})
+            return json.dumps({"active": False, "session": None})
         finally:
             db.close()
 
@@ -35,7 +37,7 @@ def register_pomodoro_tools(mcp, mcp_prefix="swissknife"):
         try:
             active = db.query(PomodoroSession).filter(PomodoroSession.completed == False).first()
             if active:
-                return '{"error": "An active pomodoro session is already running. Stop it first."}'
+                return _format_error("An active pomodoro session is already running. Stop it first.")
             session = PomodoroSession(session_type=session_type, duration_minutes=duration_minutes)
             db.add(session)
             db.commit()
@@ -52,7 +54,7 @@ def register_pomodoro_tools(mcp, mcp_prefix="swissknife"):
             active = db.query(PomodoroSession).filter(PomodoroSession.completed == False)\
                 .order_by(PomodoroSession.started_at.desc()).first()
             if not active:
-                return '{"error": "No active pomodoro session"}'
+                return _format_error("No active pomodoro session")
             active.ended_at = datetime.now(timezone.utc)
             active.completed = True
             db.commit()
@@ -67,7 +69,6 @@ def register_pomodoro_tools(mcp, mcp_prefix="swissknife"):
         db = SessionLocal()
         try:
             sessions = db.query(PomodoroSession).order_by(PomodoroSession.started_at.desc()).limit(50).all()
-            items = ",".join(_session_to_json(s) for s in sessions)
-            return f'{{"items":[{items}],"total":{len(sessions)}}}'
+            return _format_list([json.loads(_session_to_json(s)) for s in sessions])
         finally:
             db.close()

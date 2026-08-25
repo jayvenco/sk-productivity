@@ -15,7 +15,10 @@ Base = declarative_base()
 
 
 def init_db():
-    """Create all tables."""
+    """Create all tables.
+    Import Base from app.models as side-effect to load all model classes.
+    Direct import would fail (database.py defines Base, models import from database.py).
+    """
     from app.models import Base  # noqa: F811
     Base.metadata.create_all(bind=engine)
 
