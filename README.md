@@ -26,7 +26,7 @@ python -m app.main
 cd frontend
 npm install
 npm run dev
-# Draait op http://localhost:4443
+# Draait op http://localhost:4433
 ```
 
 ### MCP Server (voor Hermes Agent)

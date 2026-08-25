@@ -9,6 +9,6 @@ COPY . .
 
 RUN npm run build
 
-EXPOSE 4443
+EXPOSE 4433
 
 CMD ["node", "build/index.js"]

@@ -217,7 +217,7 @@ flowchart LR
 - Beide delen dezelfde **SQLite database**, **modellen** en **business-logic** — geen duplicatie
 
 13. [ ] **CI/CD pipeline** — GitHub Actions bouwt en pusht image naar `ghcr.io/jayvenco/sk-productivity:*` bij push naar `staging` of `main`
-14. [ ] **Twee omgevingen** — staging op poort 4443, productie op poort 4442, elk eigen data-volume
+14. [ ] **Twee omgevingen** — staging op poort 4433, productie op poort 4442, elk eigen data-volume
 15. [ ] **Handmatige deploy** — `docker pull && docker restart` volstaat voor beide omgevingen
 16. [ ] **Single container** — FastAPI serveert zowel API (`/api/*`) als statische frontend (`/`), alles in één Docker-image
 
@@ -269,7 +269,7 @@ Twee losse Docker-containers op dezelfde Unraid-server, elk met een eigen poort 
 
 | Omgeving | Container | Image tag | Poort | Data volume |
 |----------|-----------|-----------|-------|-------------|
-| **Staging** | `skp-staging` | `:staging` | **4443** | `sk-productivity-staging-data` |
+| **Staging** | `skp-staging` | `:staging` | **4433** | `sk-productivity-staging-data` |
 | **Productie** | `skp-prod` | `:latest` | **4442** | `sk-productivity-prod-data` |
 
 ### 10.5 Handmatige Deploy Commando's
@@ -283,7 +283,7 @@ docker stop skp-staging
 docker rm skp-staging
 docker run -d \
   --name skp-staging \
-  -p 4443:4442 \
+  -p 4433:4442 \
   -v sk-productivity-staging-data:/app/data \
   --restart unless-stopped \
   ghcr.io/jayvenco/sk-productivity:staging
