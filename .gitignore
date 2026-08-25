@@ -10,3 +10,4 @@ venv/
 data/
 .vite/
 dist/
+static/         # Built door Docker multi-stage, niet in repo
