@@ -5,4 +5,4 @@ sqlalchemy>=2.0.0
 pydantic>=2.0.0
 
 # MCP Server (optional — for Hermes Agent integration)
-mcp>=1.0.0
+mcp>=1.0.0,<2                # FastMCP API (v1)
