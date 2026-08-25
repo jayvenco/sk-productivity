@@ -31,13 +31,6 @@ app.include_router(wiki_router)
 app.include_router(snippets_router)
 
 
-# ── Static Frontend ────────────────────────────────────────────────
-
-STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
-if STATIC_DIR.is_dir() and any(STATIC_DIR.iterdir()):
-    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
-
-
 # ── Startup ────────────────────────────────────────────────────────
 
 @app.on_event("startup")
@@ -64,6 +57,13 @@ def api_root():
             "snippets": "/api/snippets",
         }
     }
+
+
+# ── Static Frontend ────────────────────────────────────────────────
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+if STATIC_DIR.is_dir() and any(STATIC_DIR.iterdir()):
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 
 if __name__ == "__main__":
