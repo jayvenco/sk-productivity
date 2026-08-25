@@ -62,15 +62,19 @@ Een lichtgewicht, zelf-gehoste productiviteitsapplicatie met samengebundelde fun
 
 ## 4. Tech Stack
 
-- **Backend:** Python + FastAPI + **MCP Python SDK** (`pip install mcp`)
-- **Frontend:** SvelteKit (meest reactieve framework, minimale bundle)
-- **Database:** SQLite (lokaal, geen aparte server)
+- **Runtime:** Python + FastAPI (single container — serveert zowel API als statische frontend)
+- **Frontend:** SvelteKit (SSG — static site generation, pre-built naar statische HTML/JS/CSS)
+- **Database:** SQLite (lokaal, bestand in gemapete volume, geen aparte server)
 - **APIs / externe diensten:**
-  - REST API voor SvelteKit frontend
+  - REST API voor SvelteKit frontend (`/api/*`)
+  - Statische bestanden rechtstreeks vanuit FastAPI (`/` → frontend build)
   - **MCP Server voor Hermes Agent** (tools i.p.v. rauwe HTTP)
   - Geen externe API-afhankelijkheden
-- **Containerisatie:** Docker + docker-compose
-- **Versiebeheer:** Publieke git repository (GitHub)
+- **Containerisatie:** Docker + docker-compose (één service, één container)
+- **Image registry:** GitHub Container Registry (GHCR) — `ghcr.io/jayvenco/sk-productivity:*`
+- **CI/CD:** GitHub Actions — bouwt en pusht images naar GHCR op basis van branchnaam
+- **Git workflow:** GitFlow-achtig — `staging` (werkbranch) + `main` (beschermde productiebranch)
+- **Versiebeheer:** Publieke git repository op GitHub
 
 ---
 
@@ -78,50 +82,46 @@ Een lichtgewicht, zelf-gehoste productiviteitsapplicatie met samengebundelde fun
 
 ```
 skp/
-├── backend/
-│   ├── app/
+├── app/                            # Alles in één container
+│   ├── __init__.py
+│   ├── main.py                    # FastAPI entry point (poort 4442)
+│   ├── database.py                # SQLite setup & connection
+│   ├── models/                    # SQLAlchemy database modellen
 │   │   ├── __init__.py
-│   │   ├── main.py              # FastAPI entry point (poort 4442)
-│   │   ├── database.py          # SQLite setup & connection
-│   │   ├── models/              # SQLAlchemy database modellen
-│   │   │   ├── __init__.py
-│   │   │   ├── notes.py
-│   │   │   ├── tasks.py
-│   │   │   ├── kanban.py
-│   │   │   ├── pomodoro.py
-│   │   │   ├── wiki.py
-│   │   │   └── snippets.py
-│   │   ├── routes/              # REST API endpoints (voor SvelteKit)
-│   │   │   ├── __init__.py
-│   │   │   ├── notes.py
-│   │   │   ├── tasks.py
-│   │   │   ├── kanban.py
-│   │   │   ├── pomodoro.py
-│   │   │   ├── wiki.py
-│   │   │   └── snippets.py
-│   │   └── mcp_tools/           # MCP Server voor Hermes Agent
-│   │       ├── __init__.py
-│   │       ├── server.py        # MCP entry point (MCPServer)
-│   │       ├── tools_notes.py
-│   │       ├── tools_tasks.py
-│   │       ├── tools_kanban.py
-│   │       ├── tools_pomodoro.py
-│   │       ├── tools_snippets.py
-│   │       └── tools_wiki.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── data/                    # SQLite database (git-ignored)
-├── frontend/
+│   │   ├── notes.py
+│   │   ├── tasks.py
+│   │   ├── kanban.py
+│   │   ├── pomodoro.py
+│   │   ├── wiki.py
+│   │   └── snippets.py
+│   ├── routes/                    # REST API endpoints
+│   │   ├── __init__.py
+│   │   ├── notes.py
+│   │   ├── tasks.py
+│   │   ├── kanban.py
+│   │   ├── pomodoro.py
+│   │   ├── wiki.py
+│   │   └── snippets.py
+│   └── mcp_tools/                 # MCP Server voor Hermes Agent
+│       ├── __init__.py
+│       ├── server.py              # MCP entry point (FastMCP)
+│       ├── tools_notes.py
+│       ├── tools_tasks.py
+│       ├── tools_kanban.py
+│       ├── tools_pomodoro.py
+│       ├── tools_snippets.py
+│       └── tools_wiki.py
+├── frontend/                      # SvelteKit bron (built naar static/)
 │   ├── src/
 │   │   ├── app.html
 │   │   ├── app.css
 │   │   ├── lib/
-│   │   │   ├── api.ts           # API client (fetch naar backend)
+│   │   │   ├── api.ts             # API client (fetch naar /api/*)
 │   │   │   └── components/
 │   │   │       └── Sidebar.svelte
 │   │   └── routes/
-│   │       ├── +layout.svelte   # Main layout met sidebar
-│   │       ├── +page.svelte     # Dashboard / hub
+│   │       ├── +layout.svelte
+│   │       ├── +page.svelte       # Dashboard / hub
 │   │       ├── notes/+page.svelte
 │   │       ├── tasks/+page.svelte
 │   │       ├── kanban/+page.svelte
@@ -131,11 +131,20 @@ skp/
 │   ├── package.json
 │   ├── svelte.config.js
 │   ├── vite.config.ts
-│   ├── tsconfig.json
-│   └── Dockerfile
-├── docker-compose.yml
+│   └── tsconfig.json
+├── static/                        # Pre-built SvelteKit output (git-ignored)
+├── data/                          # SQLite database (git-ignored, gemapt volume)
+├── Dockerfile                     # Multi-stage: build frontend + backend in 1 image
+├── docker-compose.yml             # Één service, één container, poort 4442
+├── .dockerignore
+├── .github/
+│   └── workflows/
+│       └── docker-publish.yml     # CI/CD: GHCR push op basis van branch
 ├── .gitignore
-└── README.md
+├── README.md
+├── OPDRACHT.md
+└── docs/
+    └── API.md                     # API-documentatie (OpenAPI/Swagger)
 ```
 
 ---
@@ -207,9 +216,110 @@ flowchart LR
 - **MCP Server** (`backend/mcp/server.py`) biedt dezelfde business-logic aan als gestructureerde tools voor Hermes
 - Beide delen dezelfde **SQLite database**, **modellen** en **business-logic** — geen duplicatie
 
+13. [ ] **CI/CD pipeline** — GitHub Actions bouwt en pusht image naar `ghcr.io/jayvenco/sk-productivity:*` bij push naar `staging` of `main`
+14. [ ] **Twee omgevingen** — staging op poort 4443, productie op poort 4442, elk eigen data-volume
+15. [ ] **Handmatige deploy** — `docker pull && docker restart` volstaat voor beide omgevingen
+16. [ ] **Single container** — FastAPI serveert zowel API (`/api/*`) als statische frontend (`/`), alles in één Docker-image
+
 ---
 
-## 10. Notities / Ideeën
+## 10. CI/CD — Deployment Pattern
+
+### 10.1 Git Branches
+
+```
+main      → Beschermde productiebranch. Ontvangt alleen commits via merge vanuit staging.
+staging   → Werkbranch. Alle nieuwe code komt hier eerst. Default branch voor ontwikkeling.
+```
+
+- **Werk altijd op `staging`** — commit en push direct, zonder te vragen.
+- **Merge naar `main`** alleen na expliciete goedkeuring van TITO.
+- Git-protectie op repo-niveau: `main` is beschermd (geen directe pushes, alleen PRs vanuit `staging`).
+
+### 10.2 Image Registry & Tagging
+
+**Registry:** GitHub Container Registry (GHCR), gekoppeld aan de publieke repo.
+
+| Branch | Imagetag(s) | Voorbeeld |
+|--------|-------------|-----------|
+| `main` | `latest` + `main-<SHA>` | `ghcr.io/jayvenco/sk-productivity:latest` |
+| `staging` | `staging` + `staging-<SHA>` | `ghcr.io/jayvenco/sk-productivity:staging` |
+
+Authenticatie via **ingebouwd `GITHUB_TOKEN`** — geen aparte Docker Hub-login of PAT nodig.
+
+### 10.3 GitHub Actions Workflow
+
+**Bestand:** `.github/workflows/docker-publish.yml`
+
+Triggers:
+- `push` naar `main`
+- `push` naar `staging`
+
+Per push:
+1. Checkout repo
+2. Login bij GHCR (`GITHUB_TOKEN`)
+3. Build Docker image met metadata labels
+4. Push image met branch-specifieke tags naar `ghcr.io/jayvenco/sk-productivity:*`
+
+**Let op:** De workflow doet alleen **build + push**. Deployment is een bewuste, handmatige stap.
+
+### 10.4 Runtime-omgevingen (Unraid)
+
+Twee losse Docker-containers op dezelfde Unraid-server, elk met een eigen poort en een eigen data-directory (nooit gedeeld tussen staging en productie).
+
+| Omgeving | Container | Image tag | Poort | Data volume |
+|----------|-----------|-----------|-------|-------------|
+| **Staging** | `skp-staging` | `:staging` | **4443** | `sk-productivity-staging-data` |
+| **Productie** | `skp-prod` | `:latest` | **4442** | `sk-productivity-prod-data` |
+
+### 10.5 Handmatige Deploy Commando's
+
+Na een geslaagde GitHub Actions-run (build + push naar GHCR):
+
+**Staging:**
+```bash
+docker pull ghcr.io/jayvenco/sk-productivity:staging
+docker stop skp-staging
+docker rm skp-staging
+docker run -d \
+  --name skp-staging \
+  -p 4443:4442 \
+  -v sk-productivity-staging-data:/app/data \
+  --restart unless-stopped \
+  ghcr.io/jayvenco/sk-productivity:staging
+```
+
+**Productie (na merge naar `main`):**
+```bash
+docker pull ghcr.io/jayvenco/sk-productivity:latest
+docker stop skp-prod
+docker rm skp-prod
+docker run -d \
+  --name skp-prod \
+  -p 4442:4442 \
+  -v sk-productivity-prod-data:/app/data \
+  --restart unless-stopped \
+  ghcr.io/jayvenco/sk-productivity:latest
+```
+
+Kortere variant (als de container al bestaat en je alleen de image wilt verversen):
+```bash
+# Staging
+docker pull ghcr.io/jayvenco/sk-productivity:staging
+docker restart skp-staging
+
+# Productie
+docker pull ghcr.io/jayvenco/sk-productivity:latest
+docker restart skp-prod
+```
+
+### 10.6 UDR (User-defined Routing) voor Unraid
+
+Op Unraid kun je de containers makkelijk beheren via de Community Apps of command-line. Voeg containers toe met bovenstaande `docker run` commando's, of gebruik de Unraid webUI om de image-tag en poort per container te configureren. Zet `--restart unless-stopped` zodat containers herstarten bij een Unraid-reboot.
+
+---
+
+## 11. Notities / Ideeën
 
 - Naam "swissknife-productivity" verwijst naar multitool-achtige bundeling (Zwitsers zakmes); folder-afkorting: `skp`.
 - De app is primair voor eigen gebruik — geen multi-user, geen permissies.
@@ -220,8 +330,9 @@ flowchart LR
 
 ---
 
-## 11. Changelog
+## 12. Changelog
 
 | Datum | Versie | Wijziging | Door |
 |-------|--------|-----------|------|
 | 2026-08-09 | 0.1 | Initiële opdracht — MVP-definitie | TITO + Chad |
+| 2026-08-25 | 0.2 | CI/CD-deploymentpatroon + single-container architectuur | TITO + Chad |

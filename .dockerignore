@@ -1,0 +1,15 @@
+node_modules/
+.svelte-kit/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+data/
+.vite/
+dist/
+build/
+.git/
+.gitignore
+*.md
+OPDRACHT.md

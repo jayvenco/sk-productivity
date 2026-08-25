@@ -1,5 +1,8 @@
+import os
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.database import init_db
 from app.routes.notes import router as notes_router
 from app.routes.tasks import router as tasks_router
@@ -18,6 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── API Routes ─────────────────────────────────────────────────────
+
 app.include_router(notes_router)
 app.include_router(tasks_router)
 app.include_router(kanban_router)
@@ -26,12 +31,23 @@ app.include_router(wiki_router)
 app.include_router(snippets_router)
 
 
+# ── Static Frontend ────────────────────────────────────────────────
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+if STATIC_DIR.is_dir() and any(STATIC_DIR.iterdir()):
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+
+
+# ── Startup ────────────────────────────────────────────────────────
+
 @app.on_event("startup")
 def on_startup():
     init_db()
 
 
-@app.get("/")
+# ── Health ─────────────────────────────────────────────────────────
+
+@app.get("/api/health")
 def health():
     return {"status": "ok", "app": "swissknife-productivity", "version": "0.1.0"}
 
@@ -52,4 +68,4 @@ def api_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=4442, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=4442, reload=not bool(os.environ.get("PRODUCTION")))
