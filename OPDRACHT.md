@@ -81,56 +81,59 @@ skp/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
-│   │   ├── main.py            # FastAPI entry point
-│   │   ├── database.py        # SQLite setup & connection
-│   │   ├── models/            # SQLAlchemy / database modellen
+│   │   ├── main.py              # FastAPI entry point (poort 4442)
+│   │   ├── database.py          # SQLite setup & connection
+│   │   ├── models/              # SQLAlchemy database modellen
 │   │   │   ├── __init__.py
-│   │   │   ├── kanban.py
 │   │   │   ├── notes.py
 │   │   │   ├── tasks.py
+│   │   │   ├── kanban.py
+│   │   │   ├── pomodoro.py
 │   │   │   ├── wiki.py
 │   │   │   └── snippets.py
-│   │   └── routes/            # API endpoints (voor SvelteKit)
+│   │   ├── routes/              # REST API endpoints (voor SvelteKit)
+│   │   │   ├── __init__.py
+│   │   │   ├── notes.py
+│   │   │   ├── tasks.py
+│   │   │   ├── kanban.py
+│   │   │   ├── pomodoro.py
+│   │   │   ├── wiki.py
+│   │   │   └── snippets.py
+│   │   └── mcp_tools/           # MCP Server voor Hermes Agent
 │   │       ├── __init__.py
-│   │       ├── kanban.py
-│   │       ├── notes.py
-│   │       ├── tasks.py
-│   │       ├── wiki.py
-│   │       ├── snippets.py
-│   │       └── pomodoro.py
-│   │   └── mcp/               # MCP Server voor Hermes Agent
-│   │       ├── __init__.py
-│   │       ├── server.py      # MCP entry point (FastMCP)
+│   │       ├── server.py        # MCP entry point (MCPServer)
 │   │       ├── tools_notes.py
-│   │       ├── tools_kanban.py
 │   │       ├── tools_tasks.py
+│   │       ├── tools_kanban.py
 │   │       ├── tools_pomodoro.py
 │   │       ├── tools_snippets.py
 │   │       └── tools_wiki.py
 │   ├── requirements.txt
-│   └── Dockerfile
+│   ├── Dockerfile
+│   └── data/                    # SQLite database (git-ignored)
 ├── frontend/
 │   ├── src/
-│   │   ├── routes/
-│   │   │   ├── +page.svelte        # Dashboard / hub
-│   │   │   ├── kanban/
-│   │   │   ├── notes/
-│   │   │   ├── tasks/
-│   │   │   ├── wiki/
-│   │   │   ├── snippets/
-│   │   │   └── pomodoro/
+│   │   ├── app.html
+│   │   ├── app.css
 │   │   ├── lib/
-│   │   │   ├── components/         # Herbruikbare UI-componenten
-│   │   │   └── api/               # API-client (fetch naar backend)
-│   │   └── app.html
-│   ├── static/
+│   │   │   ├── api.ts           # API client (fetch naar backend)
+│   │   │   └── components/
+│   │   │       └── Sidebar.svelte
+│   │   └── routes/
+│   │       ├── +layout.svelte   # Main layout met sidebar
+│   │       ├── +page.svelte     # Dashboard / hub
+│   │       ├── notes/+page.svelte
+│   │       ├── tasks/+page.svelte
+│   │       ├── kanban/+page.svelte
+│   │       ├── pomodoro/+page.svelte
+│   │       ├── wiki/+page.svelte
+│   │       └── snippets/+page.svelte
 │   ├── package.json
 │   ├── svelte.config.js
 │   ├── vite.config.ts
+│   ├── tsconfig.json
 │   └── Dockerfile
 ├── docker-compose.yml
-├── docs/
-│   └── API.md              # API-documentatie
 ├── .gitignore
 └── README.md
 ```

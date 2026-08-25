@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4442:4442"
+    volumes:
+      - ./backend/data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "4443:4443"
+    depends_on:
+      - backend
+    environment:
+      - PUBLIC_API_URL=http://backend:4442
