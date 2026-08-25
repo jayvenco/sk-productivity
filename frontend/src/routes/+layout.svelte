@@ -24,4 +24,12 @@
     padding: 24px;
     max-width: 1200px;
   }
+
+  @media (max-width: 640px) {
+    .main-content {
+      margin-left: 0;
+      padding: 16px;
+      padding-top: 60px;
+    }
+  }
 </style>

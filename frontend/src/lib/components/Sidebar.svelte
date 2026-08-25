@@ -1,5 +1,8 @@
 <script>
   import { page } from '$app/stores';
+  import { onMount } from 'svelte';
+
+  let menuOpen = $state(false);
 
   const links = [
     { href: '/', label: 'Dashboard', icon: '◇' },
@@ -10,16 +13,40 @@
     { href: '/wiki', label: 'Wiki', icon: '📖' },
     { href: '/snippets', label: 'Snippets', icon: '💻' },
   ];
+
+  function toggleMenu() { menuOpen = !menuOpen; }
+  function closeMenu() { menuOpen = false; }
+
+  function handleKeydown(e) {
+    if (e.key === 'Escape' && menuOpen) menuOpen = false;
+  }
+
+  onMount(() => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', handleKeydown);
+      return () => window.removeEventListener('keydown', handleKeydown);
+    }
+  });
 </script>
 
-<aside class="sidebar">
+<button class="hamburger" onclick={toggleMenu} aria-label="Menu" aria-expanded={menuOpen}>
+  <span class="hamburger-line"></span>
+  <span class="hamburger-line"></span>
+  <span class="hamburger-line"></span>
+</button>
+
+{#if menuOpen}
+  <div class="overlay" onclick={closeMenu} role="presentation"></div>
+{/if}
+
+<aside class="sidebar" class:open={menuOpen}>
   <div class="logo">
     <span class="logo-icon">🔧</span>
     <span class="logo-text">SKP</span>
   </div>
   <nav class="nav">
     {#each links as link}
-      <a href={link.href} class="nav-link" data-selected={$page.url.pathname === link.href}>
+      <a href={link.href} class="nav-link" data-selected={$page.url.pathname === link.href} onclick={closeMenu}>
         <span class="nav-icon">{link.icon}</span>
         <span class="nav-label">{link.label}</span>
       </a>
@@ -42,7 +69,8 @@
     display: flex;
     flex-direction: column;
     padding: 16px;
-    z-index: 10;
+    z-index: 20;
+    transition: transform 0.25s ease;
   }
 
   .logo {
@@ -57,12 +85,7 @@
   .logo-icon { font-size: 24px; }
   .logo-text { font-size: 18px; font-weight: 700; color: var(--accent); }
 
-  .nav {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-  }
+  .nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 
   .nav-link {
     display: flex;
@@ -75,26 +98,58 @@
     font-size: 14px;
   }
 
-  .nav-link:hover {
-    background: var(--bg-hover);
-    color: var(--text);
-  }
-
-  .nav-link[data-selected="true"] {
-    background: var(--bg-hover);
-    color: var(--accent);
-    font-weight: 500;
-  }
+  .nav-link:hover { background: var(--bg-hover); color: var(--text); }
+  .nav-link[data-selected="true"] { background: var(--bg-hover); color: var(--accent); font-weight: 500; }
 
   .nav-icon { font-size: 16px; width: 20px; text-align: center; }
 
-  .sidebar-footer {
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
+  .sidebar-footer { padding-top: 16px; border-top: 1px solid var(--border); }
+  .version { font-size: 12px; color: var(--text-muted); }
+
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 30;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 4px;
   }
 
-  .version {
-    font-size: 12px;
-    color: var(--text-muted);
+  .hamburger-line {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 1px;
+    transition: transform 0.2s;
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 15;
+  }
+
+  @media (max-width: 640px) {
+    .sidebar {
+      transform: translateX(-100%);
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .hamburger {
+      display: flex;
+    }
+    .overlay {
+      display: block;
+    }
   }
 </style>
