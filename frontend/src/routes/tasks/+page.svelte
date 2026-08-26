@@ -48,6 +48,14 @@
     } catch (e) { error = e.message; }
   }
 
+  async function pomodoroForTask(task) {
+    error = '';
+    try {
+      const data = { session_type: 'focus', duration_minutes: 25, item_type: 'task', item_id: task.id };
+      await api.pomodoro.start(data);
+    } catch (e) { error = e.message; }
+  }
+
   function cancel() {
     editing = null;
     form = { title: '', description: '' };
@@ -94,8 +102,9 @@
             </div>
             <div class="flex gap-2">
               <button class="secondary" onclick={() => toggleStatus(item)}>Volgende</button>
-              <button class="secondary" onclick={() => edit(item)}>Bewerk</button>
-              <button class="danger" onclick={() => remove(item.id)}>Verwijder</button>
+                        <button class="secondary" onclick={() => edit(item)}>Bewerk</button>
+                        <button class="secondary pomo-btn" onclick={() => pomodoroForTask(item)} title="Pomodoro starten">⏱</button>
+                        <button class="danger" onclick={() => remove(item.id)}>Verwijder</button>
             </div>
           </div>
           {#if item.description}<p class="description">{item.description}</p>{/if}
@@ -114,4 +123,5 @@
   .description { color: var(--text-muted); margin-top: 8px; font-size: 14px; }
   .error-msg { background: #3a1a1a; border: 1px solid var(--red); padding: 12px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; }
   .muted { color: var(--text-muted); font-style: italic; }
+  :global(.pomo-btn) { font-size: 16px; padding: 4px 8px; }
 </style>

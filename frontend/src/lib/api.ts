@@ -52,6 +52,7 @@ export const api = {
     start: (data) => request('/pomodoro/start', { method: 'POST', body: JSON.stringify(data) }),
     stop: () => request('/pomodoro/stop', { method: 'POST' }),
     list: () => request('/pomodoro'),
+    report: (params) => request(`/pomodoro/report?days=${params.days||30}${params.item_type ? `&item_type=${params.item_type}` : ''}${params.item_id ? `&item_id=${params.item_id}` : ''}`),
   },
 
   // Wiki

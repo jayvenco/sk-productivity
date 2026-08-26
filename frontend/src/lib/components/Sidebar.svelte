@@ -1,6 +1,7 @@
 <script>
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
+  import PomodoroTimer from './PomodoroTimer.svelte';
 
   let menuOpen = $state(false);
 
@@ -12,6 +13,7 @@
     { href: '/pomodoro', label: 'Pomodoro', icon: '⏱' },
     { href: '/wiki', label: 'Wiki', icon: '📖' },
     { href: '/snippets', label: 'Snippets', icon: '💻' },
+    { href: '/reports', label: 'Rapportage', icon: '📊' },
   ];
 
   function toggleMenu() { menuOpen = !menuOpen; }
@@ -53,6 +55,7 @@
     {/each}
   </nav>
   <div class="sidebar-footer">
+    <PomodoroTimer />
     <span class="version">v0.1.0</span>
   </div>
 </aside>
@@ -103,7 +106,7 @@
 
   .nav-icon { font-size: 16px; width: 20px; text-align: center; }
 
-  .sidebar-footer { padding-top: 16px; border-top: 1px solid var(--border); }
+  .sidebar-footer { padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
   .version { font-size: 12px; color: var(--text-muted); }
 
   .hamburger {

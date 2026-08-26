@@ -50,11 +50,13 @@ Een lichtgewicht, zelf-gehoste productiviteitsapplicatie met samengebundelde fun
 - [ ] **Responsive UI** — werkt op desktop, mobiel en tablet
 - [ ] **Docker Compose** — één `docker-compose up` en de app draait
 
-### 3.2 Nice-to-have
+## 3.2 Nice-to-have (v0.3)
 
-(Wordt later ingevuld bij fine-tuning.)
+- [ ] **Pomodoro per taak** — start een pomodoro op een taak/kanban-kaart/notitie, timer zichtbaar in header, rapportage van bestede tijd per item
+- [ ] **Universele tags** — tags toepassen op wiki, taken, notes en kanban. Eén `tags`-tabel + polymorfe `taggings`-tabel. Filteren en zoeken op tags overal.
+- [ ] **Globale zoekbalk** — één zoekbalk in de header die door alle modules zoekt (notes, tasks, kanban, wiki, snippets). Resultaten per categorie gegroepeerd.
 
-### 3.3 Toekomst
+## 3.3 Toekomst
 
 (Wordt later ingevuld.)
 
@@ -336,3 +338,4 @@ Op Unraid kun je de containers makkelijk beheren via de Community Apps of comman
 |-------|--------|-----------|------|
 | 2026-08-09 | 0.1 | Initiële opdracht — MVP-definitie | TITO + Chad |
 | 2026-08-25 | 0.2 | CI/CD-deploymentpatroon + single-container architectuur | TITO + Chad |
+| 2026-08-26 | 0.3 | Feature requests: pomodoro per taak + universele tags | TITO + Chad |
