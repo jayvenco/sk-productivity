@@ -108,7 +108,7 @@ def attach_tag(tag_id: int, item_type: str, item_id: int, db: Session = Depends(
     return {"attached": True, "tag_id": tag_id}
 
 
-@router.delete("/detach", status_code=204)
+@router.delete("/attachment/{tag_id}", status_code=204)
 def detach_tag(tag_id: int, item_type: str, item_id: int, db: Session = Depends(get_db)):
     """Detach a tag from an item."""
     tagging = db.query(Tagging).filter(

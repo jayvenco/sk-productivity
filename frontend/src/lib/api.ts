@@ -82,6 +82,6 @@ export const api = {
     delete: (id) => request(`/tags/${id}`, { method: 'DELETE' }),
     getForItem: (itemType, itemId) => request(`/tags/attached?item_type=${itemType}&item_id=${itemId}`),
     attach: (tagId, itemType, itemId) => request(`/tags/attach?tag_id=${tagId}&item_type=${itemType}&item_id=${itemId}`, { method: 'POST' }),
-    detach: (tagId, itemType, itemId) => request(`/tags/detach?tag_id=${tagId}&item_type=${itemType}&item_id=${itemId}`, { method: 'DELETE' }),
+    detach: (tagId, itemType, itemId) => request(`/tags/attachment/${tagId}?item_type=${itemType}&item_id=${itemId}`, { method: 'DELETE' }),
   },
 };
