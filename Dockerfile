@@ -15,7 +15,6 @@ RUN apk add --no-cache gcc musl-dev sqlite-libs
 
 # Copy Python backend code
 COPY app/ ./app/
-COPY docs/ ./docs/
 
 # Copy built frontend
 COPY --from=frontend-build /app/build /app/static
