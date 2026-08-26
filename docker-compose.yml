@@ -5,8 +5,5 @@ services:
     ports:
       - "4442:4442"
     volumes:
-      - skp-data:/app/data
+      - /mnt/user/appdata/sk-productivity:/app/data
     restart: unless-stopped
-
-volumes:
-  skp-data:
