@@ -14,6 +14,7 @@
     { href: '/wiki', label: 'Wiki', icon: '📖' },
     { href: '/snippets', label: 'Snippets', icon: '💻' },
     { href: '/reports', label: 'Rapportage', icon: '📊' },
+    { href: '/tags', label: 'Tags', icon: '🏷️' },
   ];
 
   function toggleMenu() { menuOpen = !menuOpen; }

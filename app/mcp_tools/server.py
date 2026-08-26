@@ -22,6 +22,9 @@ from app.mcp_tools.tools_wiki import register_wiki_tools
 from app.mcp_tools.tools_snippets import register_snippets_tools
 
 
+from app.mcp_tools.tools_tags import register_tags_tools
+
+
 def create_server():
     from mcp.server.fastmcp import FastMCP
 
@@ -38,6 +41,7 @@ def create_server():
     register_pomodoro_tools(mcp, mcp_prefix="mcp_swissknife")
     register_wiki_tools(mcp, mcp_prefix="mcp_swissknife")
     register_snippets_tools(mcp, mcp_prefix="mcp_swissknife")
+    register_tags_tools(mcp, mcp_prefix="mcp_swissknife")
 
     return mcp
 

@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
+  import TagSelector from '$lib/components/TagSelector.svelte';
 
   let items = $state([]);
   let editing = $state(null);
@@ -96,18 +97,21 @@
       {#each items as item (item.id)}
         <div class="card item-card">
           <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class={`badge ${statusClass(item.status)}`}>{item.status.replace('_', ' ')}</span>
-              <h3 class={item.status === 'completed' ? 'done' : ''}>{item.title}</h3>
-            </div>
-            <div class="flex gap-2">
-              <button class="secondary" onclick={() => toggleStatus(item)}>Volgende</button>
+                      <div class="flex items-center gap-2">
+                        <span class={`badge ${statusClass(item.status)}`}>{item.status.replace('_', ' ')}</span>
+                        <h3 class={item.status === 'completed' ? 'done' : ''}>{item.title}</h3>
+                      </div>
+                      <div class="flex gap-2">
+                        <button class="secondary" onclick={() => toggleStatus(item)}>Volgende</button>
                         <button class="secondary" onclick={() => edit(item)}>Bewerk</button>
                         <button class="secondary pomo-btn" onclick={() => pomodoroForTask(item)} title="Pomodoro starten">⏱</button>
                         <button class="danger" onclick={() => remove(item.id)}>Verwijder</button>
-            </div>
-          </div>
-          {#if item.description}<p class="description">{item.description}</p>{/if}
+                      </div>
+                    </div>
+                    {#if item.description}<p class="description">{item.description}</p>{/if}
+                    <div class="item-tags">
+                      <TagSelector itemType="task" itemId={item.id} />
+                    </div>
         </div>
       {/each}
     {/if}
@@ -124,4 +128,5 @@
   .error-msg { background: #3a1a1a; border: 1px solid var(--red); padding: 12px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; }
   .muted { color: var(--text-muted); font-style: italic; }
   :global(.pomo-btn) { font-size: 16px; padding: 4px 8px; }
+  .item-tags { margin-top: 6px; }
 </style>

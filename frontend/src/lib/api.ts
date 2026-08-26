@@ -73,4 +73,15 @@ export const api = {
     update: (id, data) => request(`/snippets/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id) => request(`/snippets/${id}`, { method: 'DELETE' }),
   },
+
+  // Tags
+  tags: {
+    list: () => request('/tags'),
+    create: (data) => request('/tags', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/tags/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id) => request(`/tags/${id}`, { method: 'DELETE' }),
+    getForItem: (itemType, itemId) => request(`/tags/attached?item_type=${itemType}&item_id=${itemId}`),
+    attach: (tagId, itemType, itemId) => request(`/tags/attach?tag_id=${tagId}&item_type=${itemType}&item_id=${itemId}`, { method: 'POST' }),
+    detach: (tagId, itemType, itemId) => request(`/tags/detach?tag_id=${tagId}&item_type=${itemType}&item_id=${itemId}`, { method: 'DELETE' }),
+  },
 };

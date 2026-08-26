@@ -6,6 +6,8 @@ from app.models.pomodoro import PomodoroSession
 from app.models.wiki import WikiPage
 from app.models.snippets import Snippet
 
+from app.models.tags import Tag, Tagging
+
 __all__ = [
     "Base",
     "Note",
@@ -14,4 +16,6 @@ __all__ = [
     "PomodoroSession",
     "WikiPage",
     "Snippet",
+    "Tag",
+    "Tagging",
 ]

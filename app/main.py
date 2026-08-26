@@ -10,6 +10,7 @@ from app.routes.kanban import router as kanban_router
 from app.routes.pomodoro import router as pomodoro_router
 from app.routes.wiki import router as wiki_router
 from app.routes.snippets import router as snippets_router
+from app.routes.tags import router as tags_router
 
 app = FastAPI(title="swissknife-productivity", version="0.1.0")
 
@@ -29,6 +30,7 @@ app.include_router(kanban_router)
 app.include_router(pomodoro_router)
 app.include_router(wiki_router)
 app.include_router(snippets_router)
+app.include_router(tags_router)
 
 
 # ── Startup ────────────────────────────────────────────────────────
