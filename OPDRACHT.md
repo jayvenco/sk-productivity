@@ -55,6 +55,9 @@ Een lichtgewicht, zelf-gehoste productiviteitsapplicatie met samengebundelde fun
 - [ ] **Pomodoro per taak** — start een pomodoro op een taak/kanban-kaart/notitie, timer zichtbaar in header, rapportage van bestede tijd per item
 - [ ] **Universele tags** — tags toepassen op wiki, taken, notes en kanban. Eén `tags`-tabel + polymorfe `taggings`-tabel. Filteren en zoeken op tags overal.
 - [ ] **Globale zoekbalk** — één zoekbalk in de header die door alle modules zoekt (notes, tasks, kanban, wiki, snippets). Resultaten per categorie gegroepeerd.
+- [ ] **Themes** — 5-10 kleurthema's: donker, licht, grijs, antraciet, groen, blauw, paars, sepia, high-contrast, OLED. Keuze in de sidebar of header.
+- [ ] **Kalender** — overzicht van deadlines uit taken met `due_date`. Maand/week/dag weergave. Klik op datum voor taken op die dag.
+- [ ] **Clean compact design** — alles dichter op elkaar: kleinere padding, compactere cards, meer informatie per scherm. Optionele 'compact' toggle in de header.
 
 ## 3.3 Toekomst
 

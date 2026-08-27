@@ -1,11 +1,14 @@
 const API_BASE = '/api';
+const TOKEN_KEY = 'skp_auth_token';
+const USER_KEY = 'skp_auth_user';
 
 async function request(path, options = {}) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json', ...options.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      headers: { 'Content-Type': 'application/json', ...options.headers },
-      ...options,
-    });
+    const res = await fetch(`${API_BASE}${path}`, { headers, ...options });
     if (res.status === 204) return null;
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
@@ -18,7 +21,39 @@ async function request(path, options = {}) {
   }
 }
 
+export function getToken() {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function getUsername() {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(USER_KEY);
+}
+
+export function setAuth(token, username) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_KEY, username);
+}
+
+export function clearAuth() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+}
+
+export function isAuthenticated() {
+  return !!getToken();
+}
+
 export const api = {
+  // Auth
+  auth: {
+    login: (data) => request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    verify: () => request('/auth/verify'),
+    changePassword: (data) => request('/auth/password', { method: 'PUT', body: JSON.stringify(data) }),
+    changeUsername: (data) => request('/auth/username', { method: 'PUT', body: JSON.stringify(data) }),
+  },
+
   // Notes
   notes: {
     list: () => request('/notes'),
@@ -44,6 +79,13 @@ export const api = {
     create: (data) => request('/kanban', { method: 'POST', body: JSON.stringify(data) }),
     update: (id, data) => request(`/kanban/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id) => request(`/kanban/${id}`, { method: 'DELETE' }),
+    columns: {
+      list: () => request('/kanban/columns'),
+      create: (data) => request('/kanban/columns', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/kanban/columns/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      rename: (id, name) => request(`/kanban/columns/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
+      delete: (id) => request(`/kanban/columns/${id}`, { method: 'DELETE' }),
+    },
   },
 
   // Pomodoro
@@ -83,5 +125,23 @@ export const api = {
     getForItem: (itemType, itemId) => request(`/tags/attached?item_type=${itemType}&item_id=${itemId}`),
     attach: (tagId, itemType, itemId) => request(`/tags/attach?tag_id=${tagId}&item_type=${itemType}&item_id=${itemId}`, { method: 'POST' }),
     detach: (tagId, itemType, itemId) => request(`/tags/attachment/${tagId}?item_type=${itemType}&item_id=${itemId}`, { method: 'DELETE' }),
+  },
+
+  // Backup
+  backup: {
+    create: () => request('/backup', { method: 'POST' }),
+    list: () => request('/backup'),
+    restore: (filename) => request(`/backup/restore/${encodeURIComponent(filename)}`, { method: 'POST' }),
+    delete: (filename) => request(`/backup/${encodeURIComponent(filename)}`, { method: 'DELETE' }),
+  },
+
+  // Stickies
+  stickies: {
+    list: () => request('/stickies'),
+    get: (id) => request(`/stickies/${id}`),
+    create: (data) => request('/stickies', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/stickies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id) => request(`/stickies/${id}`, { method: 'DELETE' }),
+    bulkDelete: (ids) => request('/stickies/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
   },
 };

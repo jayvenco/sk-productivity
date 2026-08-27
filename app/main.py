@@ -11,6 +11,9 @@ from app.routes.pomodoro import router as pomodoro_router
 from app.routes.wiki import router as wiki_router
 from app.routes.snippets import router as snippets_router
 from app.routes.tags import router as tags_router
+from app.routes.auth import router as auth_router
+from app.routes.backup import router as backup_router
+from app.routes.stickies import router as stickies_router
 
 app = FastAPI(title="swissknife-productivity", version="0.1.0")
 
@@ -31,6 +34,9 @@ app.include_router(pomodoro_router)
 app.include_router(wiki_router)
 app.include_router(snippets_router)
 app.include_router(tags_router)
+app.include_router(auth_router)
+app.include_router(backup_router)
+app.include_router(stickies_router)
 
 
 # ── Startup ────────────────────────────────────────────────────────
