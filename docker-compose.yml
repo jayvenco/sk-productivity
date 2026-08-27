@@ -1,9 +1,14 @@
 services:
   skp:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: skp
     ports:
       - "4442:4442"
     volumes:
-      - /mnt/user/appdata/sk-productivity:/app/data
+      - /mnt/user/appdata/sk-productivity/data:/app/data
     restart: unless-stopped
+    environment:
+      - DOCKER_BUILDKIT=0
+      - COMPOSE_DOCKER_CLI_BUILD=0
