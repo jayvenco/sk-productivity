@@ -156,4 +156,9 @@ export const api = {
   calendar: {
     deadlines: (days = 60) => request(`/calendar/deadlines?days=${days}`),
   },
+
+  // Reports
+  reports: {
+    dashboard: (days = 90) => request(`/reports/dashboard?days=${days}`),
+  },
 };

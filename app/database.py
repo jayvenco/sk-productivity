@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # Data directory: one level up from app/ (project root)
@@ -17,18 +17,54 @@ Base = declarative_base()
 def init_db():
     """Create all tables and migrate existing data.
     Import Base from app.models as side-effect to load all model classes.
-    Direct import would fail (database.py defines Base, models import from database.py).
     """
     from app.models import Base  # noqa: F811
     Base.metadata.create_all(bind=engine)
 
-    # ── Migrate: create default columns if none exist ──────────────
+    # ── Migrate schema: add missing columns to existing tables ──
+    _migrate_schema()
+
+    # ── Migrate: create default columns if none exist ──────────
     db = SessionLocal()
     try:
         _migrate_kanban_columns(db)
         _migrate_default_admin(db)
     finally:
         db.close()
+
+
+def _get_columns(table_name: str) -> set:
+    """Get set of existing column names for a table."""
+    from sqlalchemy import inspect
+    inspector = inspect(engine)
+    return {c["name"] for c in inspector.get_columns(table_name)}
+
+
+def _migrate_schema():
+    """Add missing columns to existing tables. SQLAlchemy's create_all
+    only creates new tables, it does not ALTER existing ones.
+    """
+    import logging
+
+    columns_to_add = {
+        "kanban": [
+            ("due_date", "datetime"),
+            ("swimlane_id", "integer"),
+        ],
+    }
+
+    for table, cols in columns_to_add.items():
+        existing = _get_columns(table)
+        for col_name, col_type in cols:
+            if col_name not in existing:
+                sql = f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"
+                try:
+                    with engine.connect() as conn:
+                        conn.execute(text(sql))
+                        conn.commit()
+                    logging.info(f"Migrated: added {table}.{col_name}")
+                except Exception as e:
+                    logging.warning(f"Could not add {table}.{col_name}: {e}")
 
 
 def _migrate_default_admin(db):
