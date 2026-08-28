@@ -5,7 +5,7 @@
 
   let items = $state([]);
   let editing = $state(null);
-  let form = $state({ title: '', description: '' });
+  let form = $state({ title: '', description: '', due_date: '' });
   let error = $state('');
   let loading = $state(true);
 
@@ -18,17 +18,24 @@
   async function save() {
     error = '';
     try {
-      if (editing) await api.tasks.update(editing, form);
-      else await api.tasks.create(form);
+      const payload = { ...form };
+      if (form.due_date) payload.due_date = new Date(form.due_date).toISOString();
+      else payload.due_date = null;
+      if (editing) await api.tasks.update(editing, payload);
+      else await api.tasks.create(payload);
       editing = null;
-      form = { title: '', description: '' };
+      form = { title: '', description: '', due_date: '' };
       items = (await api.tasks.list()).items;
     } catch (e) { error = e.message; }
   }
 
   function edit(item) {
     editing = item.id;
-    form = { title: item.title, description: item.description };
+    form = {
+      title: item.title,
+      description: item.description,
+      due_date: item.due_date ? item.due_date.slice(0, 10) : '',
+    };
   }
 
   async function toggleStatus(item) {
@@ -59,7 +66,7 @@
 
   function cancel() {
     editing = null;
-    form = { title: '', description: '' };
+    form = { title: '', description: '', due_date: '' };
   }
 
   function statusClass(s) {
@@ -82,6 +89,7 @@
     <h3>{editing ? 'Bewerk taak' : 'Nieuwe taak'}</h3>
     <div class="flex-col gap-2">
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
+      <input type="date" bind:value={form.due_date} aria-label="Deadline" />
       <textarea bind:value={form.description} placeholder="Beschrijving..." rows="3" aria-label="Beschrijving"></textarea>
       <div class="flex gap-2">
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
@@ -109,7 +117,15 @@
                       </div>
                     </div>
                     {#if item.description}<p class="description">{item.description}</p>{/if}
-                    <div class="item-tags">
+                    <div class="flex gap-2 items-center" style="margin-top: 4px;">
+                      {#if item.due_date}
+                        {@const d = new Date(item.due_date)}
+                        {@const today = new Date()}
+                        {@const overdue = d < today && item.status !== 'completed'}
+                        <span class="due-date" class:overdue>
+                          📅 {d.toLocaleDateString('nl-NL', {day:'numeric',month:'short'})}
+                        </span>
+                      {/if}
                       <TagSelector itemType="task" itemId={item.id} />
                     </div>
         </div>
@@ -129,4 +145,6 @@
   .muted { color: var(--text-muted); font-style: italic; }
   :global(.pomo-btn) { font-size: 16px; padding: 4px 8px; }
   .item-tags { margin-top: 6px; }
+  .due-date { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  .due-date.overdue { color: var(--red); font-weight: 600; }
 </style>
