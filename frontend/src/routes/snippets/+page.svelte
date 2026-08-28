@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
   import TagSelector from '$lib/components/TagSelector.svelte';
+  import CodeEditor from '$lib/components/CodeEditor.svelte';
 
   let items = $state([]);
   let editing = $state(null);
@@ -74,7 +75,7 @@
         <option value="yaml">YAML</option>
         <option value="markdown">Markdown</option>
       </select>
-      <textarea bind:value={form.code} placeholder="Code..." rows="6" class="code-input" aria-label="Code"></textarea>
+      <CodeEditor bind:value={form.code} placeholder="Code..." rows="6" />
       <div class="flex gap-2">
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
         {#if editing}<button class="secondary" onclick={cancel}>Annuleren</button>{/if}
