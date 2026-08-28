@@ -2,7 +2,7 @@
   import { api, getToken, getUsername, clearAuth, setAuth } from '$lib/api';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { themes, getTheme, setTheme } from '$lib/theme';
+  import { themes, getTheme, setTheme, fonts, getFont, setFont } from '$lib/theme';
 
   let username = $state(getUsername() || 'admin');
   let currentPw = $state('');
@@ -11,6 +11,7 @@
   let error = $state('');
   let success = $state('');
   let currentTheme = $state(getTheme());
+  let currentFont = $state(getFont());
   let backups = $state([]);
   let backupLoading = $state(false);
   let restoring = $state(null);
@@ -78,6 +79,13 @@
     currentTheme = name;
     setTheme(name);
     success = 'Thema gewijzigd ✅';
+    setTimeout(() => success = '', 2000);
+  }
+
+  function selectFont(index) {
+    currentFont = index;
+    setFont(index);
+    success = `Lettertype: ${fonts[index].name} ✅`;
     setTimeout(() => success = '', 2000);
   }
 
@@ -150,6 +158,21 @@
         </div>
       </button>
     {/each}
+  </div>
+  <div class="font-section">
+    <span class="label">Lettertype</span>
+    <div class="font-list">
+      {#each fonts as font, i}
+        <button
+          class="font-btn"
+          class:active={currentFont === i}
+          onclick={() => selectFont(i)}
+          style="font-family: {font.family}"
+        >
+          {font.name}
+        </button>
+      {/each}
+    </div>
   </div>
 </div>
 
@@ -265,6 +288,36 @@
     height: 16px;
     border-radius: 50%;
     border: 1px solid var(--border);
+  }
+  .font-section {
+    margin-top: 16px;
+  }
+  .font-section .label {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .font-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .font-btn {
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .font-btn:hover {
+    border-color: var(--accent);
+    background: var(--bg-hover);
+  }
+  .font-btn.active {
+    border-color: var(--accent);
+    background: var(--bg-hover);
   }
   .error-msg {
     background: #3a1a1a;

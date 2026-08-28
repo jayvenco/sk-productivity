@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
+  import TagSelector from '$lib/components/TagSelector.svelte';
 
   let items = $state([]);
   let editing = $state(null);
@@ -91,6 +92,7 @@
             <div class="flex items-center gap-2">
               <h3>{item.title}</h3>
               <span class="badge" style="background: #333; color: #aaa;">{item.language}</span>
+              <TagSelector itemType="snippet" itemId={item.id} />
             </div>
             <div class="flex gap-2">
               <button class="secondary" onclick={() => edit(item)}>Bewerk</button>

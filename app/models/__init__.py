@@ -1,7 +1,7 @@
 from app.database import Base
 from app.models.notes import Note
 from app.models.tasks import Task
-from app.models.kanban import KanbanCard, KanbanColumn
+from app.models.kanban import KanbanCard, KanbanColumn, KanbanSwimlane
 from app.models.pomodoro import PomodoroSession
 from app.models.wiki import WikiPage
 from app.models.snippets import Snippet
@@ -15,6 +15,7 @@ __all__ = [
     "Task",
     "KanbanCard",
     "KanbanColumn",
+    "KanbanSwimlane",
     "PomodoroSession",
     "WikiPage",
     "Snippet",

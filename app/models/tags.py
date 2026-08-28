@@ -16,7 +16,7 @@ class Tagging(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     tag_id = Column(Integer, ForeignKey("tags.id", ondelete="CASCADE"), nullable=False)
-    tagable_type = Column(String(20), nullable=False)  # 'note', 'task', 'kanban', 'wiki', 'snippet'
+    tagable_type = Column(String(20), nullable=False)  # 'note', 'task', 'kanban', 'wiki', 'snippet', 'stickie'
     tagable_id = Column(Integer, nullable=False)
 
     tag = relationship("Tag")

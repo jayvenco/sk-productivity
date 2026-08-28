@@ -15,7 +15,7 @@
   --red: #fc8181;
   --blue: #6b7a8f;
   --sidebar-bg: #262a36;
-  --sidebar-w: 200px;
+  --sidebar-w: 0px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -129,4 +129,6 @@ h4 { font-size: 14px; font-weight: 500; }
   body { font-size: 13px; }
   .card { padding: 10px; }
   h1 { font-size: 19px; }
+  .bb-label { display: none; }
+  .bb-item { padding: 6px 8px; }
 }

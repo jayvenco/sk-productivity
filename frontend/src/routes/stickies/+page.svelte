@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
+  import TagSelector from '$lib/components/TagSelector.svelte';
 
   let notes = $state([]);
   let selected = $state(new Set());
@@ -205,6 +206,9 @@
         {:else}
           <div class="sticky-content">
             {note.content}
+            <div class="sticky-tags">
+              <TagSelector itemType="stickie" itemId={note.id} />
+            </div>
           </div>
         {/if}
       </div>

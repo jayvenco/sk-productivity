@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
+  import TagSelector from '$lib/components/TagSelector.svelte';
 
   let items = $state([]);
   let editing = $state(null);
@@ -82,6 +83,7 @@
             </div>
           </div>
           <p class="content">{item.content}</p>
+          <TagSelector itemType="note" itemId={item.id} />
           <span class="date">{new Date(item.created_at).toLocaleDateString('nl-NL')}</span>
         </div>
       {/each}

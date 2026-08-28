@@ -2,7 +2,7 @@
   import { api, setAuth } from '$lib/api';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { getTheme, applyTheme } from '$lib/theme';
+  import { getTheme, applyTheme, getFont, applyFont } from '$lib/theme';
 
   let username = $state('');
   let password = $state('');
@@ -11,6 +11,7 @@
 
   onMount(() => {
     applyTheme(getTheme());
+    applyFont(getFont());
   });
 
   async function login() {
@@ -74,9 +75,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    height: 100vh;
+    width: 100%;
     background: var(--bg);
     padding: 20px;
+    box-sizing: border-box;
   }
 
   .login-card {

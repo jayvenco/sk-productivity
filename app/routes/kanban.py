@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models.kanban import KanbanCard, KanbanColumn, KanbanStatus
+from app.models.kanban import KanbanCard, KanbanColumn, KanbanSwimlane, KanbanStatus
 
 
 # ── Column Schemas ───────────────────────────────────────────────────
@@ -37,14 +37,18 @@ class KanbanCreate(BaseModel):
     title: str
     description: str = ""
     column_id: Optional[int] = None
+    swimlane_id: Optional[int] = None
     position: int = 0
+    due_date: Optional[datetime] = None
 
 
 class KanbanUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     column_id: Optional[int] = None
+    swimlane_id: Optional[int] = None
     position: Optional[int] = None
+    due_date: Optional[datetime] = None
 
 
 class KanbanResponse(BaseModel):
@@ -52,7 +56,9 @@ class KanbanResponse(BaseModel):
     title: str
     description: str
     column_id: Optional[int] = None
+    swimlane_id: Optional[int] = None
     position: int
+    due_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -123,6 +129,69 @@ def delete_column(column_id: int, db: Session = Depends(get_db)):
 
 # ── Card Endpoints ──────────────────────────────────────────────────
 
+# ── Swimlane Schemas ────────────────────────────────────────────────
+
+class KanbanSwimlaneCreate(BaseModel):
+    name: str
+    position: int = 0
+    color: str = "#444466"
+
+
+class KanbanSwimlaneUpdate(BaseModel):
+    name: Optional[str] = None
+    position: Optional[int] = None
+    color: Optional[str] = None
+
+
+class KanbanSwimlaneResponse(BaseModel):
+    id: int
+    name: str
+    position: int
+    color: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ── Swimlane Endpoints ──────────────────────────────────────────────
+
+@router.get("/swimlanes", response_model=List[KanbanSwimlaneResponse])
+def list_swimlanes(db: Session = Depends(get_db)):
+    return db.query(KanbanSwimlane).order_by(KanbanSwimlane.position).all()
+
+
+@router.post("/swimlanes", response_model=KanbanSwimlaneResponse, status_code=201)
+def create_swimlane(data: KanbanSwimlaneCreate, db: Session = Depends(get_db)):
+    sw = KanbanSwimlane(name=data.name, position=data.position, color=data.color)
+    db.add(sw)
+    db.commit()
+    db.refresh(sw)
+    return sw
+
+
+@router.put("/swimlanes/{swimlane_id}", response_model=KanbanSwimlaneResponse)
+def update_swimlane(swimlane_id: int, data: KanbanSwimlaneUpdate, db: Session = Depends(get_db)):
+    sw = db.query(KanbanSwimlane).filter(KanbanSwimlane.id == swimlane_id).first()
+    if not sw:
+        raise HTTPException(status_code=404, detail="Swimlane not found")
+    if data.name is not None: sw.name = data.name
+    if data.position is not None: sw.position = data.position
+    if data.color is not None: sw.color = data.color
+    db.commit()
+    db.refresh(sw)
+    return sw
+
+
+@router.delete("/swimlanes/{swimlane_id}", status_code=204)
+def delete_swimlane(swimlane_id: int, db: Session = Depends(get_db)):
+    sw = db.query(KanbanSwimlane).filter(KanbanSwimlane.id == swimlane_id).first()
+    if not sw:
+        raise HTTPException(status_code=404, detail="Swimlane not found")
+    for card in sw.cards:
+        card.swimlane_id = None
+    db.delete(sw)
+    db.commit()
+
 @router.get("", response_model=KanbanListResponse)
 def list_kanban(db: Session = Depends(get_db)):
     items = db.query(KanbanCard).order_by(KanbanCard.position).all()
@@ -153,7 +222,8 @@ def create_kanban_card(data: KanbanCreate, db: Session = Depends(get_db)):
 
     card = KanbanCard(
         title=data.title, description=data.description,
-        column_id=col_id, position=data.position,
+        column_id=col_id, position=data.position, due_date=data.due_date,
+        swimlane_id=data.swimlane_id,
     )
     db.add(card)
     db.commit()
@@ -174,6 +244,10 @@ def update_kanban_card(card_id: int, data: KanbanUpdate, db: Session = Depends(g
         card.column_id = data.column_id
     if data.position is not None:
         card.position = data.position
+    if data.swimlane_id is not None:
+        card.swimlane_id = data.swimlane_id
+    if data.due_date is not None:
+        card.due_date = data.due_date
     db.commit()
     db.refresh(card)
     return KanbanResponse.model_validate(card)

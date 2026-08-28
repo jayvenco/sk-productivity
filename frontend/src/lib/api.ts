@@ -86,6 +86,13 @@ export const api = {
       rename: (id, name) => request(`/kanban/columns/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
       delete: (id) => request(`/kanban/columns/${id}`, { method: 'DELETE' }),
     },
+    swimlanes: {
+      list: () => request('/kanban/swimlanes'),
+      create: (data) => request('/kanban/swimlanes', { method: 'POST', body: JSON.stringify(data) }),
+      update: (id, data) => request(`/kanban/swimlanes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      rename: (id, name) => request(`/kanban/swimlanes/${id}`, { method: 'PUT', body: JSON.stringify({ name }) }),
+      delete: (id) => request(`/kanban/swimlanes/${id}`, { method: 'DELETE' }),
+    },
   },
 
   // Pomodoro
@@ -143,5 +150,10 @@ export const api = {
     update: (id, data) => request(`/stickies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id) => request(`/stickies/${id}`, { method: 'DELETE' }),
     bulkDelete: (ids) => request('/stickies/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+  },
+
+  // Calendar
+  calendar: {
+    deadlines: (days = 60) => request(`/calendar/deadlines?days=${days}`),
   },
 };
