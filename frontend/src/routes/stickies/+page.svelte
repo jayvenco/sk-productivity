@@ -234,7 +234,7 @@
 
   .sticky {
     position: absolute;
-    border-radius: 8px;
+    border-radius: 6px;
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.15);
     cursor: grab;

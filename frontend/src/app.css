@@ -1,5 +1,5 @@
 :root {
-  --radius: 12px;
+  --radius: 6px;
 
   /* Dark theme (default) — Deep Ocean & Sand */
   --bg: #1c1e26;
@@ -95,7 +95,7 @@ textarea { font-family: 'SF Mono', 'Fira Code', monospace; resize: vertical; min
 
 .badge {
   padding: 2px 7px;
-  border-radius: 10px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 500;
 }

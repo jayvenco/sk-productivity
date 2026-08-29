@@ -103,7 +103,7 @@
     align-items: center;
     gap: 4px;
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: 6px;
     font-size: 11px;
     font-weight: 500;
   }
@@ -120,7 +120,7 @@
   .tag-add-btn {
     background: var(--bg-hover);
     border: 1px dashed var(--border);
-    border-radius: 12px;
+    border-radius: 6px;
     padding: 2px 8px;
     font-size: 12px;
     cursor: pointer;
@@ -132,7 +132,7 @@
   }
   .tag-option {
     padding: 4px 10px;
-    border-radius: 12px;
+    border-radius: 6px;
     font-size: 11px;
     cursor: pointer;
     font-weight: 500;
