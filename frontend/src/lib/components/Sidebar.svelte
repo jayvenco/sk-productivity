@@ -2,6 +2,7 @@
   import { page } from '$app/stores';
   import { getUsername, clearAuth } from '$lib/api';
   import { goto } from '$app/navigation';
+  import Calendar from '$lib/components/Calendar.svelte';
 
   const links = [
     { href: '/', label: 'Home', icon: '◇' },
@@ -18,18 +19,17 @@
   ];
 
   const HIDE_KEY = 'skp_hide_nav';
-
-  let hidden = $state(false);
-  let expanded = $state(false);
+  let collapsed = $state(false);
+  let calOpen = $state(true);
 
   if (typeof localStorage !== 'undefined') {
-    hidden = localStorage.getItem(HIDE_KEY) === 'true';
+    collapsed = localStorage.getItem(HIDE_KEY) === 'true';
   }
 
-  function toggleHide() {
-    hidden = !hidden;
-    localStorage.setItem(HIDE_KEY, hidden ? 'true' : 'false');
-    document.documentElement.classList.toggle('nav-hidden', hidden);
+  function toggleCollapse() {
+    collapsed = !collapsed;
+    localStorage.setItem(HIDE_KEY, collapsed ? 'true' : 'false');
+    document.documentElement.classList.toggle('nav-hidden', collapsed);
   }
 
   function logout() {
@@ -39,147 +39,143 @@
   }
 </script>
 
-<nav class="bottombar" class:hidden>
-  <div class="bb-inner">
-    {#each links as link}
-      <a
-        href={link.href}
-        class="bb-item"
-        class:active={$page.url.pathname === link.href}
-        aria-label={link.label}
-      >
-        <span class="bb-icon">{link.icon}</span>
-        {#if expanded || window.innerWidth > 768}
-          <span class="bb-label">{link.label}</span>
+<aside class="sidebar" class:collapsed>
+  <div class="sb-inner">
+    <div class="sb-links">
+      {#each links as link}
+        <a
+          href={link.href}
+          class="sb-item"
+          class:active={$page.url.pathname === link.href}
+          aria-label={link.label}
+          title={link.label}
+        >
+          <span class="sb-icon">{link.icon}</span>
+          {#if !collapsed}
+            <span class="sb-label">{link.label}</span>
+          {/if}
+        </a>
+      {/each}
+    </div>
+    <div class="sb-bottom">
+      <button class="sb-item sb-logout" onclick={logout} aria-label="Uitloggen" title={getUsername() || 'admin'}>
+        <span class="sb-icon">🚪</span>
+        {#if !collapsed}
+          <span class="sb-label">{getUsername() || 'admin'}</span>
         {/if}
-      </a>
-    {/each}
-    <button class="bb-item bb-logout" onclick={logout} aria-label="Uitloggen" title={getUsername() || 'admin'}>
-      <span class="bb-icon">🚪</span>
-      {#if expanded || window.innerWidth > 768}
-        <span class="bb-label">{getUsername() || 'admin'}</span>
-      {/if}
-    </button>
+      </button>
+      <button class="sb-collapse-btn" onclick={toggleCollapse} aria-label="Inklappen" title={collapsed ? 'Uitklappen' : 'Inklappen'}>
+        {collapsed ? '▶' : '◀'}
+      </button>
+    </div>
   </div>
-  <div class="bb-controls">
-    <button class="bb-toggle" onclick={() => expanded = !expanded} aria-label="Uitklappen">
-      {expanded ? '▼' : '▲'}
-    </button>
-  </div>
-</nav>
-
-<button class="nav-hide-fab" onclick={toggleHide} aria-label="Toon navigatie" title="Toon/verberg navigatie">
-  {hidden ? '⬆' : '⬇'}
-</button>
+  {#if !collapsed}
+    <div class="sb-cal">
+      <Calendar bind:show={calOpen} />
+    </div>
+  {/if}
+</aside>
 
 <style>
-  .bottombar {
+  .sidebar {
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
-    right: 0;
+    bottom: 0;
+    width: 200px;
     background: var(--bg-card);
-    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
     z-index: 100;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    transition: transform 0.25s ease;
+    transition: width 0.2s ease;
+    overflow: hidden;
   }
 
-  .bottombar.hidden {
-    transform: translateY(100%);
+  .sidebar.collapsed {
+    width: 48px;
   }
 
-  .bb-inner {
-    display: flex;
-    overflow-x: auto;
-    gap: 2px;
-    padding: 6px 8px;
-    width: 100%;
-    justify-content: center;
-    scrollbar-width: none;
-  }
-
-  .bb-inner::-webkit-scrollbar { display: none; }
-
-  .bb-item {
+  .sb-inner {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    flex: 1;
+    padding: 8px;
+    gap: 4px;
+    overflow-y: auto;
+  }
+
+  .sb-links {
+    display: flex;
+    flex-direction: column;
     gap: 2px;
-    padding: 6px 10px;
+    flex: 1;
+  }
+
+  .sb-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
     border-radius: var(--radius);
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 11px;
+    font-size: 13px;
     transition: all 0.15s;
     white-space: nowrap;
     background: none;
     border: none;
     cursor: pointer;
     font-family: inherit;
-    min-width: 0;
+    width: 100%;
+    text-align: left;
   }
 
-  .bb-item:hover {
+  .sb-item:hover {
     background: var(--bg-hover);
     color: var(--text);
   }
 
-  .bb-item.active {
+  .sb-item.active {
     color: var(--accent);
+    background: var(--bg-hover);
   }
 
-  .bb-icon { font-size: 18px; line-height: 1; }
-  .bb-label { font-size: 10px; font-weight: 500; }
+  .sb-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+  .sb-label { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
 
-  .bb-logout { opacity: 0.6; }
-  .bb-logout:hover { opacity: 1; }
-
-  .bb-controls {
+  .sb-bottom {
     display: flex;
-    position: absolute;
-    top: -20px;
-    right: 12px;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
   }
 
-  .bb-toggle {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
+  .sb-logout { opacity: 0.6; }
+  .sb-logout:hover { opacity: 1; }
+
+  .sb-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: var(--radius);
     color: var(--text-muted);
-    font-size: 10px;
-    padding: 2px 12px;
+    background: none;
+    border: none;
     cursor: pointer;
-    font-family: inherit;
-  }
-
-  .bb-toggle:hover { color: var(--text); }
-
-  .nav-hide-fab {
-    position: fixed;
-    bottom: 4px;
-    right: 12px;
-    z-index: 101;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-muted);
     font-size: 12px;
-    padding: 3px 10px;
-    cursor: pointer;
     font-family: inherit;
-    opacity: 0.5;
-    transition: opacity 0.15s;
-    line-height: 1.4;
+    width: 100%;
   }
 
-  .bottombar.hidden ~ .nav-hide-fab {
-    bottom: 4px;
-    opacity: 0.8;
+  .sb-collapse-btn:hover { background: var(--bg-hover); color: var(--text); }
+
+  .sb-cal {
+    padding: 8px;
+    border-top: 1px solid var(--border);
   }
 
-  .nav-hide-fab:hover { opacity: 1; color: var(--text); }
+  .sidebar.collapsed .sb-cal { display: none; }
 </style>

@@ -1,7 +1,6 @@
 <script>
   import '../app.css';
   import Sidebar from '$lib/components/Sidebar.svelte';
-  import Calendar from '$lib/components/Calendar.svelte';
   import { isAuthenticated, clearAuth } from '$lib/api';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
@@ -10,7 +9,6 @@
   let { children } = $props();
   let authed = $state(false);
   let checking = $state(true);
-  let calOpen = $state(true);
 
   onMount(() => {
     authed = isAuthenticated();
@@ -38,29 +36,17 @@
   </div>
 {:else}
   <div class="app-layout">
-    <div class="cal-container">
-      <Calendar bind:show={calOpen} />
-    </div>
-    <main class="main-content" class:cal-open={calOpen}>
+    <Sidebar />
+    <main class="main-content">
       {@render children()}
     </main>
-    <Sidebar />
   </div>
 {/if}
 
 <style>
   .app-layout {
     display: flex;
-    flex-direction: column;
     min-height: 100vh;
-  }
-
-  .cal-container {
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    width: 230px;
-    z-index: 50;
   }
 
   .main-content {
@@ -69,14 +55,11 @@
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
-    padding-bottom: 80px;
-  }
-
-  .main-content.cal-open {
-    padding-left: 260px;
+    padding-left: 220px;
   }
 
   .main-content.no-sidebar {
+    padding-left: 20px;
     padding-bottom: 20px;
     padding: 0;
     margin: 0;
@@ -84,7 +67,7 @@
   }
 
   :global(.nav-hidden) .main-content {
-    padding-bottom: 20px;
+    padding-left: 68px;
   }
 
   .loading-page {
@@ -96,7 +79,9 @@
   }
 
   @media (max-width: 768px) {
-    .cal-container { display: none; }
-    .main-content.cal-open { padding-left: 20px; }
+    .main-content {
+      padding-left: 20px;
+      padding: 12px;
+    }
   }
 </style>
