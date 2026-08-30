@@ -3,12 +3,41 @@
   import { api } from '$lib/api';
   import TagSelector from '$lib/components/TagSelector.svelte';
   import ColorPicker from '$lib/components/ColorPicker.svelte';
+  import TextEditor from '$lib/components/TextEditor.svelte';
+  import TagPicker from '$lib/components/TagPicker.svelte';
 
   let items = $state([]);
   let editing = $state(null);
-  let form = $state({ title: '', content: '', color: '#262a36' });
+  let form = $state({ title: '', content: '', color: '#262a36', tagIds: [] });
   let error = $state('');
   let loading = $state(true);
+
+  function renderMarkdown(text) {
+    if (!text) return '';
+    let h = text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      // Headers
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      // Bold, italic, strikethrough
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/~~(.+?)~~/g, '<del>$1</del>')
+      // Links
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      // Quotes
+      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+      // Code blocks
+      .replace(/```(.+?)```/gs, '<pre><code>$1</code></pre>')
+      // Inline code
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      // Bullets
+      .replace(/^[-*] (.+)$/gm, '<span class="bullet">• $1</span><br>')
+      // Line breaks
+      .replace(/\n/g, '<br>');
+    return h;
+  }
 
   onMount(async () => {
     try { items = (await api.notes.list()).items; }
@@ -20,16 +49,21 @@
     error = '';
     try {
       if (editing) await api.notes.update(editing, form);
-      else await api.notes.create(form);
+      else {
+        const item = await api.notes.create(form);
+        for (const tid of form.tagIds) {
+          await api.tags.attach(tid, 'note', item.id).catch(() => {});
+        }
+      }
       editing = null;
-      form = { title: '', content: '' };
+      form = { title: '', content: '', color: '#262a36', tagIds: [] };
       items = (await api.notes.list()).items;
     } catch (e) { error = e.message; }
   }
 
   function edit(item) {
     editing = item.id;
-    form = { title: item.title, content: item.content, color: item.color || '#262a36' };
+    form = { title: item.title, content: item.content, color: item.color || '#262a36', tagIds: [] };
   }
 
   async function remove(id) {
@@ -43,7 +77,7 @@
 
   function cancel() {
     editing = null;
-    form = { title: '', content: '' };
+    form = { title: '', content: '', color: '#262a36', tagIds: [] };
   }
 </script>
 
@@ -62,7 +96,8 @@
     <h3>{editing ? 'Bewerk notitie' : 'Nieuwe notitie'}</h3>
     <div class="flex-col gap-2">
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
-      <textarea bind:value={form.content} placeholder="Schrijf hier..." rows="4" aria-label="Inhoud"></textarea>
+      <TextEditor bind:value={form.content} placeholder="Schrijf hier..." rows={6} />
+      <TagPicker bind:tagIds={form.tagIds} />
       <div class="flex gap-2 items-center">
         <ColorPicker bind:value={form.color} />
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
@@ -80,7 +115,7 @@
           <div class="flex justify-between items-start" style="gap: 8px;">
             <div class="card-content">
               <h3>{item.title}</h3>
-              <p class="preview">{item.content}</p>
+              <p class="preview">{@html renderMarkdown(item.content)}</p>
             </div>
             <div class="card-actions" onclick={(e) => e.stopPropagation()}>
               <button class="danger small" onclick={() => remove(item.id)} title="Verwijder">✕</button>
@@ -130,12 +165,47 @@
   .preview {
     color: var(--text-muted);
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.5;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 8px;
+  }
+  .preview :global(h1),
+  .preview :global(h2),
+  .preview :global(h3) {
+    font-size: inherit;
+    font-weight: 600;
+    margin: 4px 0 2px;
+    color: var(--text);
+  }
+  .preview :global(blockquote) {
+    border-left: 2px solid var(--accent);
+    padding-left: 8px;
+    margin: 4px 0;
+    opacity: 0.8;
+  }
+  .preview :global(pre) {
+    background: #111;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin: 4px 0;
+    font-size: 11px;
+    overflow-x: auto;
+  }
+  .preview :global(code) {
+    background: #111;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+  .preview :global(a) {
+    color: var(--accent);
+  }
+  .preview :global(.bullet) {
+    display: block;
+    padding-left: 4px;
   }
   .card-footer {
     display: flex;

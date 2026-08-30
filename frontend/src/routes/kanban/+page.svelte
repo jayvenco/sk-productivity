@@ -2,11 +2,12 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
   import TagSelector from '$lib/components/TagSelector.svelte';
+  import TagPicker from '$lib/components/TagPicker.svelte';
 
   let columns = $state([]);
   let swimlanes = $state([]);
   let cardsByCell = $state({});
-  let form = $state({ title: '', description: '' });
+  let form = $state({ title: '', description: '', tagIds: [] });
   let colForm = $state({ name: '', color: '#6b7280' });
   let swForm = $state({ name: '', color: '#444466' });
   let editingCol = $state(null);
@@ -57,8 +58,11 @@
       const firstSw = swimlanes.length ? swimlanes[0] : null;
       const key = `${target.id}-${firstSw?.id || null}`;
       const cards = cardsByCell[key] || [];
-      await api.kanban.create({ title: form.title, description: form.description, column_id: target.id, swimlane_id: firstSw?.id || null, position: cards.length });
-      form = { title: '', description: '' };
+      const item = await api.kanban.create({ title: form.title, description: form.description, column_id: target.id, swimlane_id: firstSw?.id || null, position: cards.length });
+      for (const tid of form.tagIds) {
+        await api.tags.attach(tid, 'kanban', item.id).catch(() => {});
+      }
+      form = { title: '', description: '', tagIds: [] };
       await load();
     } catch (e) { error = e.message; }
   }
@@ -172,6 +176,9 @@
     <div class="flex gap-2">
       <input bind:value={form.title} placeholder="Kaart titel" class="flex-1" aria-label="Titel" />
       <button class="primary" onclick={createCard}>Toevoegen</button>
+    </div>
+    <div style="margin-top: 8px;">
+      <TagPicker bind:tagIds={form.tagIds} />
     </div>
   </div>
 

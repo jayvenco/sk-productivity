@@ -3,10 +3,11 @@
   import { api } from '$lib/api';
   import TagSelector from '$lib/components/TagSelector.svelte';
   import ColorPicker from '$lib/components/ColorPicker.svelte';
+  import TagPicker from '$lib/components/TagPicker.svelte';
 
   let items = $state([]);
   let editing = $state(null);
-  let form = $state({ title: '', description: '', due_date: '', color: '#262a36' });
+  let form = $state({ title: '', description: '', due_date: '', color: '#262a36', tagIds: [] });
   let error = $state('');
   let loading = $state(true);
 
@@ -23,9 +24,14 @@
       if (form.due_date) payload.due_date = new Date(form.due_date).toISOString();
       else payload.due_date = null;
       if (editing) await api.tasks.update(editing, payload);
-      else await api.tasks.create(payload);
+      else {
+        const item = await api.tasks.create(payload);
+        for (const tid of form.tagIds) {
+          await api.tags.attach(tid, 'task', item.id).catch(() => {});
+        }
+      }
       editing = null;
-      form = { title: '', description: '', due_date: '' };
+      form = { title: '', description: '', due_date: '', color: '#262a36', tagIds: [] };
       items = (await api.tasks.list()).items;
     } catch (e) { error = e.message; }
   }
@@ -37,6 +43,7 @@
       description: item.description,
       due_date: item.due_date ? item.due_date.slice(0, 10) : '',
       color: item.color || '#262a36',
+      tagIds: [],
     };
   }
 
@@ -68,7 +75,7 @@
 
   function cancel() {
     editing = null;
-    form = { title: '', description: '', due_date: '' };
+    form = { title: '', description: '', due_date: '', color: '#262a36', tagIds: [] };
   }
 
   function statusClass(s) {
@@ -93,6 +100,7 @@
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
       <input type="date" bind:value={form.due_date} aria-label="Deadline" />
       <textarea bind:value={form.description} placeholder="Beschrijving..." rows="3" aria-label="Beschrijving"></textarea>
+      <TagPicker bind:tagIds={form.tagIds} />
       <div class="flex gap-2 items-center">
         <ColorPicker bind:value={form.color} />
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>

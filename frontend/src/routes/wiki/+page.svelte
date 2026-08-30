@@ -2,10 +2,11 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
   import TagSelector from '$lib/components/TagSelector.svelte';
+  import TagPicker from '$lib/components/TagPicker.svelte';
 
   let items = $state([]);
   let editing = $state(null);
-  let form = $state({ title: '', slug: '', content: '' });
+  let form = $state({ title: '', slug: '', content: '', tagIds: [] });
   let search = $state('');
   let error = $state('');
   let loading = $state(true);
@@ -26,16 +27,21 @@
     error = '';
     try {
       if (editing) await api.wiki.update(editing, form);
-      else await api.wiki.create(form);
+      else {
+        const item = await api.wiki.create(form);
+        for (const tid of form.tagIds) {
+          await api.tags.attach(tid, 'wiki', item.id).catch(() => {});
+        }
+      }
       editing = null;
-      form = { title: '', slug: '', content: '' };
+      form = { title: '', slug: '', content: '', tagIds: [] };
       items = (await api.wiki.list()).items;
     } catch (e) { error = e.message; }
   }
 
   function edit(item) {
     editing = item.id;
-    form = { title: item.title, slug: item.slug, content: item.content };
+    form = { title: item.title, slug: item.slug, content: item.content, tagIds: [] };
   }
 
   async function remove(id) {
@@ -49,7 +55,7 @@
 
   function cancel() {
     editing = null;
-    form = { title: '', slug: '', content: '' };
+    form = { title: '', slug: '', content: '', tagIds: [] };
   }
 </script>
 
@@ -74,6 +80,7 @@
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
       <input bind:value={form.slug} placeholder="slug-van-pagina" aria-label="Slug" />
       <textarea bind:value={form.content} placeholder="Markdown content..." rows="6" aria-label="Inhoud"></textarea>
+      <TagPicker bind:tagIds={form.tagIds} />
       <div class="flex gap-2">
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
         {#if editing}<button class="secondary" onclick={cancel}>Annuleren</button>{/if}
