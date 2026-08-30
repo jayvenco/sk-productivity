@@ -161,4 +161,23 @@ export const api = {
   reports: {
     dashboard: (days = 90) => request(`/reports/dashboard?days=${days}`),
   },
+
+  // Background
+  background: {
+    upload: (file) => {
+      const form = new FormData();
+      form.append('file', file);
+      const token = getToken();
+      return fetch('/api/background/upload', {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: form,
+      }).then(async r => {
+        if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.detail || 'Upload failed'); }
+        return r.json();
+      });
+    },
+    delete: () => request('/background', { method: 'DELETE' }),
+    status: () => request('/background/status'),
+  },
 };

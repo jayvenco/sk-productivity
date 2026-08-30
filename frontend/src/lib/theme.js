@@ -1,4 +1,7 @@
 const THEME_KEY = 'skp_theme';
+const GRADIENT_KEY = 'skp_gradient';
+const BG_IMAGE_KEY = 'skp_bg_image';
+const BG_MODE_KEY = 'skp_bg_mode';
 
 export const themes = {
   default: {
@@ -190,6 +193,19 @@ export const themes = {
   },
 };
 
+export const gradients = [
+  { name: 'Geen', value: '' },
+  { name: 'Eigen afbeelding', value: '__custom__' },
+  { name: 'Oranje Vuur', value: 'linear-gradient(135deg, #ef8354 0%, #1c1e26 50%, #1c1e26 100%)' },
+  { name: 'Oceaan Blauw', value: 'linear-gradient(135deg, #0ea5e9 0%, #1c1e26 50%, #1c1e26 100%)' },
+  { name: 'Zwart', value: 'linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2a2a2a 100%)' },
+  { name: 'Antraciet', value: 'linear-gradient(135deg, #2d2d2d 0%, #1c1e26 50%, #1c1e26 100%)' },
+  { name: 'Oranje Zonsondergang', value: 'linear-gradient(135deg, #ff6b35 0%, #1c1e26 50%, #1c1e26 100%)' },
+  { name: 'Paars Diep', value: 'linear-gradient(135deg, #a78bfa 0%, #1c1e26 50%, #1c1e26 100%)' },
+  { name: 'Azure', value: 'linear-gradient(135deg, #007fff 0%, #1c1e26 50%, #1c1e26 100%)' },
+  { name: 'Marine Blauw', value: 'linear-gradient(135deg, #000080 0%, #0a0a2e 50%, #1c1e26 100%)' },
+];
+
 export function getTheme() {
   if (typeof localStorage === 'undefined') return 'default';
   return localStorage.getItem(THEME_KEY) || 'default';
@@ -207,6 +223,56 @@ export function applyTheme(name) {
   for (const [key, value] of Object.entries(theme.colors)) {
     root.style.setProperty(key, value);
   }
+  applyGradient(getActiveGradient());
+}
+
+export function getActiveGradient() {
+  if (typeof localStorage === 'undefined') return '';
+  const idx = parseInt(localStorage.getItem(GRADIENT_KEY) || '0', 10);
+  return idx < gradients.length ? idx : 0;
+}
+
+export function setActiveGradient(index) {
+  localStorage.setItem(GRADIENT_KEY, String(index));
+  applyGradient(index);
+}
+
+export function applyGradient(index) {
+  const g = gradients[index];
+  if (!g || !g.value) {
+    document.body.style.background = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundAttachment = '';
+    return;
+  }
+  if (g.value === '__custom__') {
+    const imgUrl = localStorage.getItem(BG_IMAGE_KEY);
+    if (imgUrl) {
+      document.body.style.background = `url(${imgUrl}) center/cover fixed`;
+    }
+    return;
+  }
+  document.body.style.background = g.value;
+  document.body.style.backgroundAttachment = 'fixed';
+  document.body.style.backgroundSize = '';
+}
+
+export function hasCustomBgImage() {
+  return !!localStorage.getItem(BG_IMAGE_KEY);
+}
+
+export function setCustomBgImage(url) {
+  if (url) {
+    localStorage.setItem(BG_IMAGE_KEY, url);
+  } else {
+    localStorage.removeItem(BG_IMAGE_KEY);
+  }
+  // Re-apply current gradient to show/hide the image
+  applyGradient(getActiveGradient());
+}
+
+export function getCustomBgImage() {
+  return localStorage.getItem(BG_IMAGE_KEY) || '';
 }
 
 // ── Font ───────────────────────────────────────────────────────────

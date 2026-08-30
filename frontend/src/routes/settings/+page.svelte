@@ -2,7 +2,7 @@
   import { api, getToken, getUsername, clearAuth, setAuth } from '$lib/api';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { themes, getTheme, setTheme, fonts, getFont, setFont } from '$lib/theme';
+  import { themes, getTheme, setTheme, fonts, getFont, setFont, gradients, getActiveGradient, setActiveGradient, hasCustomBgImage, setCustomBgImage, getCustomBgImage } from '$lib/theme';
 
   let username = $state(getUsername() || 'admin');
   let currentPw = $state('');
@@ -12,6 +12,9 @@
   let success = $state('');
   let currentTheme = $state(getTheme());
   let currentFont = $state(getFont());
+  let currentGradient = $state(getActiveGradient());
+  let uploading = $state(false);
+  let hasBg = $state(false);
   let backups = $state([]);
   let backupLoading = $state(false);
   let restoring = $state(null);
@@ -20,6 +23,8 @@
     try {
       await api.auth.verify();
       await loadBackups();
+      const s = await api.background.status().catch(() => ({ has_image: false }));
+      hasBg = s.has_image;
     } catch {
       clearAuth();
       goto('/login');
@@ -87,6 +92,47 @@
     setFont(index);
     success = `Lettertype: ${fonts[index].name} ✅`;
     setTimeout(() => success = '', 2000);
+  }
+
+  function selectGradient(index) {
+    currentGradient = index;
+    setActiveGradient(index);
+    success = `Achtergrond: ${gradients[index].name} ✅`;
+    setTimeout(() => success = '', 2000);
+  }
+
+  async function handleUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    uploading = true;
+    error = '';
+    success = '';
+    try {
+      const res = await api.background.upload(file);
+      hasBg = true;
+      setCustomBgImage('/api/background/image');
+      currentGradient = 1; // Eigen afbeelding
+      setActiveGradient(1);
+      success = 'Afbeelding geüpload ✅';
+    } catch (e) {
+      error = e.message;
+    } finally {
+      uploading = false;
+      e.target.value = '';
+    }
+  }
+
+  async function removeBg() {
+    if (!confirm('Verwijder achtergrondafbeelding?')) return;
+    error = ''; success = '';
+    try {
+      await api.background.delete();
+      hasBg = false;
+      setCustomBgImage('');
+      currentGradient = 0;
+      setActiveGradient(0);
+      success = 'Achtergrond verwijderd ✅';
+    } catch (e) { error = e.message; }
   }
 
   async function changePassword() {
@@ -172,6 +218,35 @@
           {font.name}
         </button>
       {/each}
+    </div>
+  </div>
+  <div class="gradient-section">
+    <span class="label">Achtergrond verloop</span>
+    <div class="gradient-list">
+      {#each gradients as g, i}
+        <button
+          class="gradient-btn"
+          class:active={currentGradient === i}
+          onclick={() => selectGradient(i)}
+          style="background: {g.value === '__custom__' ? (hasBg ? 'url(/api/background/image) center/cover' : 'var(--bg)') : (g.value || 'var(--bg)')}; border: 2px solid {currentGradient === i ? 'var(--accent)' : 'var(--border)'};"
+        >
+          {g.name}
+        </button>
+      {/each}
+    </div>
+    <div class="bg-upload">
+      {#if hasBg}
+        <div class="bg-preview" style="background: url(/api/background/image) center/cover;"></div>
+      {/if}
+      <label class="bg-upload-btn">
+        <input type="file" accept="image/*" onchange={handleUpload} hidden />
+        <span class="secondary" style="display:inline-block; padding:6px 12px; border-radius: var(--radius); cursor:pointer;">
+          {uploading ? 'Uploaden...' : '📷 Upload afbeelding'}
+        </span>
+      </label>
+      {#if hasBg}
+        <button class="danger" onclick={removeBg}>Verwijder afbeelding</button>
+      {/if}
     </div>
   </div>
 </div>
@@ -318,6 +393,49 @@
   .font-btn.active {
     border-color: var(--accent);
     background: var(--bg-hover);
+  }
+  .gradient-section {
+    margin-top: 16px;
+  }
+  .gradient-section .label {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .gradient-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .gradient-btn {
+    padding: 16px 14px;
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.15s;
+    min-width: 100px;
+    text-align: center;
+    font-family: inherit;
+  }
+  .gradient-btn:hover {
+    opacity: 0.85;
+  }
+  .gradient-btn.active {
+    border-color: var(--accent) !important;
+  }
+  .bg-upload {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .bg-preview {
+    width: 60px;
+    height: 40px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
   }
   .error-msg {
     background: #3a1a1a;
