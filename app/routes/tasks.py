@@ -12,6 +12,7 @@ class TaskCreate(BaseModel):
     title: str
     description: str = ""
     due_date: Optional[datetime] = None
+    color: Optional[str] = None
 
 
 class TaskUpdate(BaseModel):
@@ -19,6 +20,7 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[TaskStatus] = None
     due_date: Optional[datetime] = None
+    color: Optional[str] = None
 
 
 class TaskResponse(BaseModel):
@@ -26,6 +28,7 @@ class TaskResponse(BaseModel):
     title: str
     description: str
     status: TaskStatus
+    color: Optional[str] = None
     due_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
@@ -61,7 +64,7 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=TaskResponse, status_code=201)
 def create_task(data: TaskCreate, db: Session = Depends(get_db)):
-    task = Task(title=data.title, description=data.description, due_date=data.due_date)
+    task = Task(title=data.title, description=data.description, due_date=data.due_date, color=data.color)
     db.add(task)
     db.commit()
     db.refresh(task)
@@ -81,6 +84,8 @@ def update_task(task_id: int, data: TaskUpdate, db: Session = Depends(get_db)):
         task.status = data.status
     if data.due_date is not None:
         task.due_date = data.due_date
+    if data.color is not None:
+        task.color = data.color
     db.commit()
     db.refresh(task)
     return TaskResponse.model_validate(task)

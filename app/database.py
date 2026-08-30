@@ -51,6 +51,12 @@ def _migrate_schema():
             ("due_date", "datetime"),
             ("swimlane_id", "integer"),
         ],
+        "notes": [
+            ("color", "varchar(7)"),
+        ],
+        "tasks": [
+            ("color", "varchar(7)"),
+        ],
     }
 
     for table, cols in columns_to_add.items():

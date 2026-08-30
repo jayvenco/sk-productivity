@@ -11,17 +11,20 @@ from app.models.notes import Note
 class NoteCreate(BaseModel):
     title: str
     content: str = ""
+    color: Optional[str] = None
 
 
 class NoteUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
+    color: Optional[str] = None
 
 
 class NoteResponse(BaseModel):
     id: int
     title: str
     content: str
+    color: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -56,7 +59,7 @@ def get_note(note_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=NoteResponse, status_code=201)
 def create_note(data: NoteCreate, db: Session = Depends(get_db)):
-    note = Note(title=data.title, content=data.content)
+    note = Note(title=data.title, content=data.content, color=data.color)
     db.add(note)
     db.commit()
     db.refresh(note)
@@ -72,6 +75,8 @@ def update_note(note_id: int, data: NoteUpdate, db: Session = Depends(get_db)):
         note.title = data.title
     if data.content is not None:
         note.content = data.content
+    if data.color is not None:
+        note.color = data.color
     db.commit()
     db.refresh(note)
     return NoteResponse.model_validate(note)

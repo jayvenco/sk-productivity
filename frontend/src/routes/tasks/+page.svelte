@@ -2,10 +2,11 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
   import TagSelector from '$lib/components/TagSelector.svelte';
+  import ColorPicker from '$lib/components/ColorPicker.svelte';
 
   let items = $state([]);
   let editing = $state(null);
-  let form = $state({ title: '', description: '', due_date: '' });
+  let form = $state({ title: '', description: '', due_date: '', color: '#262a36' });
   let error = $state('');
   let loading = $state(true);
 
@@ -35,6 +36,7 @@
       title: item.title,
       description: item.description,
       due_date: item.due_date ? item.due_date.slice(0, 10) : '',
+      color: item.color || '#262a36',
     };
   }
 
@@ -91,7 +93,8 @@
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
       <input type="date" bind:value={form.due_date} aria-label="Deadline" />
       <textarea bind:value={form.description} placeholder="Beschrijving..." rows="3" aria-label="Beschrijving"></textarea>
-      <div class="flex gap-2">
+      <div class="flex gap-2 items-center">
+        <ColorPicker bind:value={form.color} />
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
         {#if editing}<button class="secondary" onclick={cancel}>Annuleren</button>{/if}
       </div>
@@ -103,7 +106,7 @@
       <p class="muted">Geen taken — maak er een aan.</p>
     {:else}
       {#each items as item (item.id)}
-        <div class="card item-card">
+        <div class="card item-card" style="border-left-color: {item.color || '#262a36'};">
           <div class="flex justify-between items-center">
                       <div class="flex items-center gap-2">
                         <span class={`badge ${statusClass(item.status)}`}>{item.status.replace('_', ' ')}</span>
@@ -139,6 +142,7 @@
   .form-card { margin-bottom: 16px; }
   .form-card h3 { margin-bottom: 12px; }
   .items-list { display: flex; flex-direction: column; gap: 8px; }
+  .item-card { border-left: 3px solid var(--border); }
   .done { text-decoration: line-through; opacity: 0.6; }
   .description { color: var(--text-muted); margin-top: 8px; font-size: 14px; }
   .error-msg { background: #3a1a1a; border: 1px solid var(--red); padding: 12px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; }
