@@ -10,5 +10,6 @@ class Snippet(Base):
     title = Column(String(255), nullable=False)
     language = Column(String(50), nullable=False, default="text")
     code = Column(Text, nullable=False, default="")
+    project_id = Column(Integer, nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

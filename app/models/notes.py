@@ -10,5 +10,6 @@ class Note(Base):
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=False, default="")
     color = Column(String(7), nullable=False, default="#262a36")
+    project_id = Column(Integer, nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

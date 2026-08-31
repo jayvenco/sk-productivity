@@ -17,6 +17,7 @@ from app.routes.stickies import router as stickies_router
 from app.routes.calendar import router as calendar_router
 from app.routes.reports import router as reports_router
 from app.routes.background import router as background_router
+from app.routes.projects import router as projects_router
 
 app = FastAPI(title="swissknife-productivity", version="0.1.0")
 
@@ -43,6 +44,7 @@ app.include_router(stickies_router)
 app.include_router(calendar_router)
 app.include_router(reports_router)
 app.include_router(background_router)
+app.include_router(projects_router)
 
 
 # ── Startup ────────────────────────────────────────────────────────

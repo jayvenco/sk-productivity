@@ -50,12 +50,21 @@ def _migrate_schema():
         "kanban": [
             ("due_date", "datetime"),
             ("swimlane_id", "integer"),
+            ("project_id", "integer"),
         ],
         "notes": [
             ("color", "varchar(7)"),
+            ("project_id", "integer"),
         ],
         "tasks": [
             ("color", "varchar(7)"),
+            ("project_id", "integer"),
+        ],
+        "wiki": [
+            ("project_id", "integer"),
+        ],
+        "snippets": [
+            ("project_id", "integer"),
         ],
     }
 

@@ -191,6 +191,23 @@ export const themes = {
       '--blue': '#73d0ff',
     },
   },
+  todoist: {
+    name: 'Todoist',
+    icon: '🔴',
+    colors: {
+      '--bg': '#f5f5f5',
+      '--bg-card': '#ffffff',
+      '--bg-hover': '#f0f0f0',
+      '--border': '#e0e0e0',
+      '--text': '#202020',
+      '--text-muted': '#808080',
+      '--accent': '#E44332',
+      '--accent-hover': '#cc3c2d',
+      '--green': '#20a87a',
+      '--red': '#E44332',
+      '--blue': '#246fe0',
+    },
+  },
 };
 
 export const gradients = [

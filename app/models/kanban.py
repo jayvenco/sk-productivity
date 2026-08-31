@@ -35,6 +35,7 @@ class KanbanCard(Base):
     position = Column(Integer, default=0, nullable=False)
     column_id = Column(Integer, ForeignKey("kanban_columns.id"), nullable=True, index=True)
     swimlane_id = Column(Integer, ForeignKey("kanban_swimlanes.id"), nullable=True, index=True)
+    project_id = Column(Integer, nullable=True, index=True)
     due_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

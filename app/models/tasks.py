@@ -19,5 +19,6 @@ class Task(Base):
     status = Column(SAEnum(TaskStatus), default=TaskStatus.pending, nullable=False)
     color = Column(String(7), nullable=False, default="#262a36")
     due_date = Column(DateTime, nullable=True)
+    project_id = Column(Integer, nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

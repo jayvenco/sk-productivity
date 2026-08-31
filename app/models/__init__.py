@@ -8,6 +8,7 @@ from app.models.snippets import Snippet
 from app.models.settings import Setting
 from app.models.stickies import StickyNote
 from app.models.tags import Tag, Tagging
+from app.models.project import Project
 
 __all__ = [
     "Base",
@@ -23,4 +24,5 @@ __all__ = [
     "StickyNote",
     "Tag",
     "Tagging",
+    "Project",
 ]

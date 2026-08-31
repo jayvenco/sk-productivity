@@ -180,4 +180,12 @@ export const api = {
     delete: () => request('/background', { method: 'DELETE' }),
     status: () => request('/background/status'),
   },
+
+  // Projects
+  projects: {
+    list: () => request('/projects'),
+    create: (data) => request('/projects', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => request(`/projects/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id) => request(`/projects/${id}`, { method: 'DELETE' }),
+  },
 };

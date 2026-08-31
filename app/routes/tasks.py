@@ -13,6 +13,7 @@ class TaskCreate(BaseModel):
     description: str = ""
     due_date: Optional[datetime] = None
     color: Optional[str] = None
+    project_id: Optional[int] = None
 
 
 class TaskUpdate(BaseModel):
@@ -21,6 +22,7 @@ class TaskUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     due_date: Optional[datetime] = None
     color: Optional[str] = None
+    project_id: Optional[int] = None
 
 
 class TaskResponse(BaseModel):
@@ -29,6 +31,7 @@ class TaskResponse(BaseModel):
     description: str
     status: TaskStatus
     color: Optional[str] = None
+    project_id: Optional[int] = None
     due_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
@@ -64,7 +67,7 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=TaskResponse, status_code=201)
 def create_task(data: TaskCreate, db: Session = Depends(get_db)):
-    task = Task(title=data.title, description=data.description, due_date=data.due_date, color=data.color)
+    task = Task(title=data.title, description=data.description, due_date=data.due_date, color=data.color, project_id=data.project_id)
     db.add(task)
     db.commit()
     db.refresh(task)
@@ -86,6 +89,8 @@ def update_task(task_id: int, data: TaskUpdate, db: Session = Depends(get_db)):
         task.due_date = data.due_date
     if data.color is not None:
         task.color = data.color
+    if data.project_id is not None:
+        task.project_id = data.project_id
     db.commit()
     db.refresh(task)
     return TaskResponse.model_validate(task)
