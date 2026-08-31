@@ -3,6 +3,7 @@
   import { api } from '$lib/api';
   import TagSelector from '$lib/components/TagSelector.svelte';
   import TagPicker from '$lib/components/TagPicker.svelte';
+  import TextEditor from '$lib/components/TextEditor.svelte';
 
   let items = $state([]);
   let editing = $state(null);
@@ -10,6 +11,25 @@
   let search = $state('');
   let error = $state('');
   let loading = $state(true);
+
+  function renderMarkdown(text) {
+    if (!text) return '';
+    let h = text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/~~(.+?)~~/g, '<del>$1</del>')
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+      .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+      .replace(/```(.+?)```/gs, '<pre><code>$1</code></pre>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      .replace(/^[-*] (.+)$/gm, '<span class="bullet">• $1</span><br>')
+      .replace(/\n/g, '<br>');
+    return h;
+  }
 
   onMount(async () => {
     try { items = (await api.wiki.list()).items; }
@@ -79,7 +99,7 @@
     <div class="flex-col gap-2">
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
       <input bind:value={form.slug} placeholder="slug-van-pagina" aria-label="Slug" />
-      <textarea bind:value={form.content} placeholder="Markdown content..." rows="6" aria-label="Inhoud"></textarea>
+      <TextEditor bind:value={form.content} placeholder="Markdown content..." rows={8} />
       <TagPicker bind:tagIds={form.tagIds} />
       <div class="flex gap-2">
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
@@ -93,17 +113,19 @@
       <p class="muted">Geen wiki pagina's{search ? ' voor deze zoekopdracht' : ''}.</p>
     {:else}
       {#each items as item (item.id)}
-        <div class="card item-card">
-          <div class="flex justify-between items-center">
+        <div class="card item-card" onclick={() => edit(item)} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && edit(item)}>
+          <div class="flex justify-between items-start" style="gap: 8px;">
             <div>
               <h3>{item.title}</h3>
               <span class="slug">/{item.slug}</span>
-              <TagSelector itemType="wiki" itemId={item.id} />
+              <div class="preview">{@html renderMarkdown(item.content)}</div>
             </div>
-            <div class="flex gap-2">
-              <button class="secondary" onclick={() => edit(item)}>Bewerk</button>
-              <button class="danger" onclick={() => remove(item.id)}>Verwijder</button>
+            <div class="card-actions" onclick={(e) => e.stopPropagation()}>
+              <button class="danger small" onclick={() => remove(item.id)} title="Verwijder">✕</button>
             </div>
+          </div>
+          <div class="card-footer">
+            <TagSelector itemType="wiki" itemId={item.id} />
           </div>
         </div>
       {/each}
@@ -116,7 +138,30 @@
   .form-card { margin-bottom: 16px; }
   .form-card h3 { margin-bottom: 12px; }
   .items-list { display: flex; flex-direction: column; gap: 8px; }
-  .slug { font-size: 12px; color: var(--text-muted); }
+  .item-card { cursor: pointer; transition: all 0.15s; }
+  .item-card:hover { border-color: var(--accent); }
+  .slug { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px; }
+  .preview {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .preview :global(h1),
+  .preview :global(h2),
+  .preview :global(h3) { font-size: inherit; font-weight: 600; margin: 4px 0 2px; color: var(--text); }
+  .preview :global(blockquote) { border-left: 2px solid var(--accent); padding-left: 8px; margin: 4px 0; opacity: 0.8; }
+  .preview :global(pre) { background: #111; border-radius: 4px; padding: 6px 8px; margin: 4px 0; font-size: 11px; overflow-x: auto; }
+  .preview :global(code) { background: #111; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+  .preview :global(a) { color: var(--accent); }
+  .preview :global(.bullet) { display: block; padding-left: 4px; }
+  .card-actions { flex-shrink: 0; }
+  .card-footer { margin-top: 8px; }
   .error-msg { background: #3a1a1a; border: 1px solid var(--red); padding: 12px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; }
   .muted { color: var(--text-muted); font-style: italic; }
+  button.small { padding: 4px 8px; font-size: 11px; }
 </style>
