@@ -6,16 +6,16 @@
 
   let allTags = $state([]);
   let attached = $state([]);
-  let showPicker = $state(false);
+  let open = $state(false);
 
   onMount(async () => {
-    try { allTags = (await api.tags.list()).items; } catch (e) {}
+    try { allTags = (await api.tags.list()).items; } catch {}
     if (itemId) await loadAttached();
   });
 
   async function loadAttached() {
     if (!itemId) return;
-    try { attached = await api.tags.getForItem(itemType, itemId); } catch (e) {}
+    try { attached = await api.tags.getForItem(itemType, itemId); } catch {}
   }
 
   async function toggleAttach(tag) {
@@ -28,86 +28,80 @@
       await loadAttached();
     } catch (e) { console.error(e); }
   }
+
+  function close(e) {
+    if (!e.target.closest('.td-wrap')) open = false;
+  }
 </script>
 
-<div class="tag-area">
-  <div class="tag-list">
+<svelte:window onclick={close} />
+
+<div class="td-wrap">
+  <div class="td-tags">
     {#each attached as tag (tag.id)}
-      <span class="tag-badge" style="background: {tag.color}22; color: {tag.color}; border: 1px solid {tag.color}44;">
+      <span class="td-badge" style="background:{tag.color}22; color:{tag.color}; border:1px solid {tag.color}44;">
         {tag.name}
         {#if itemId}
-          <button class="tag-remove" onclick={() => toggleAttach(tag)} aria-label="Verwijder tag {tag.name}">✕</button>
+          <button class="td-rm" onclick={() => toggleAttach(tag)} aria-label="Verwijder {tag.name}">✕</button>
         {/if}
       </span>
     {/each}
     {#if itemId}
-      <button class="tag-add-btn" onclick={() => showPicker = !showPicker}>+</button>
+      <button class="td-btn" onclick={() => open = !open}>
+        ⌄
+      </button>
     {/if}
   </div>
 
-  {#if showPicker && itemId}
-    <div class="tag-picker card">
-      <div class="flex gap-2" style="flex-wrap: wrap;">
-        {#each allTags as tag (tag.id)}
-          <button
-            class="tag-option"
-            class:selected={attached.find(t => t.id === tag.id)}
-            style="background: {tag.color}22; color: {tag.color}; border: 1px solid {attached.find(t => t.id === tag.id) ? tag.color : tag.color}44;"
-            onclick={() => toggleAttach(tag)}
-          >
-            {tag.name}
-          </button>
-        {/each}
-      </div>
+  {#if open && itemId}
+    <div class="td-drop card">
+      {#each allTags as tag (tag.id)}
+        <button
+          class="td-opt"
+          class:sel={attached.find(t => t.id === tag.id)}
+          onclick={() => toggleAttach(tag)}
+        >
+          <span class="td-dot" style="background:{tag.color};"></span>
+          <span class="td-lbl">{tag.name}</span>
+          <span class="td-check">{attached.find(t => t.id === tag.id) ? '✓' : ''}</span>
+        </button>
+      {/each}
       {#if allTags.length === 0}
-        <p class="muted">Maak eerst tags aan op de Tags pagina 🏷️</p>
+        <p class="muted">Maak tags aan op de Tags pagina 🏷️</p>
       {/if}
     </div>
   {/if}
 </div>
 
 <style>
-  .tag-area { display: flex; flex-direction: column; gap: 6px; }
-  .tag-list { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-  .tag-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 500;
+  .td-wrap { position: relative; display: inline-block; }
+  .td-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .td-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 500;
   }
-  .tag-remove {
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    font-size: 10px;
-    padding: 0 2px;
-    opacity: 0.6;
+  .td-rm { background: none; border: none; color: inherit; cursor: pointer; font-size: 10px; padding: 0 2px; opacity: 0.6; }
+  .td-rm:hover { opacity: 1; }
+  .td-btn {
+    background: var(--bg-hover); border: 1px solid var(--border);
+    border-radius: 6px; padding: 2px 10px; font-size: 11px;
+    cursor: pointer; color: var(--text-muted); font-family: inherit; line-height: 1.4;
   }
-  .tag-remove:hover { opacity: 1; }
-  .tag-add-btn {
-    background: var(--bg-hover);
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    padding: 2px 8px;
-    font-size: 12px;
-    cursor: pointer;
-    color: var(--text-muted);
+  .td-btn:hover { color: var(--text); background: var(--bg-card); }
+  .td-drop {
+    position: absolute; top: 100%; left: 0; z-index: 50; margin-top: 4px;
+    padding: 6px; min-width: 180px; max-height: 240px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px;
   }
-  .tag-picker {
-    padding: 12px;
-    margin-top: 4px;
+  .td-opt {
+    display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+    border-radius: 4px; cursor: pointer; transition: all 0.1s;
+    background: none; border: none; color: var(--text); font-size: 12px; font-family: inherit; text-align: left; width: 100%;
   }
-  .tag-option {
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    cursor: pointer;
-    font-weight: 500;
-  }
-  .tag-option.selected { transform: scale(1.05); }
-  .muted { color: var(--text-muted); font-size: 12px; font-style: italic; }
+  .td-opt:hover { background: var(--bg-hover); }
+  .td-opt.sel { background: var(--bg-hover); font-weight: 600; }
+  .td-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .td-lbl { flex: 1; }
+  .td-check { font-size: 11px; color: var(--accent); font-weight: 700; }
+  .muted { color: var(--text-muted); font-size: 11px; font-style: italic; padding: 6px; }
 </style>
