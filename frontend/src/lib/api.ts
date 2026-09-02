@@ -146,16 +146,6 @@ export const api = {
     delete: (filename) => request(`/backup/${encodeURIComponent(filename)}`, { method: 'DELETE' }),
   },
 
-  // Stickies
-  stickies: {
-    list: () => request('/stickies'),
-    get: (id) => request(`/stickies/${id}`),
-    create: (data) => request('/stickies', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id, data) => request(`/stickies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    delete: (id) => request(`/stickies/${id}`, { method: 'DELETE' }),
-    bulkDelete: (ids) => request('/stickies/bulk-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
-  },
-
   // Calendar
   calendar: {
     deadlines: (days = 60) => request(`/calendar/deadlines?days=${days}`),

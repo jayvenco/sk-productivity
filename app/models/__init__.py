@@ -6,7 +6,6 @@ from app.models.pomodoro import PomodoroSession, PomoStatus
 from app.models.wiki import WikiPage
 from app.models.snippets import Snippet
 from app.models.settings import Setting
-from app.models.stickies import StickyNote
 from app.models.tags import Tag, Tagging
 from app.models.project import Project
 
@@ -22,7 +21,6 @@ __all__ = [
     "WikiPage",
     "Snippet",
     "Setting",
-    "StickyNote",
     "Tag",
     "Tagging",
     "Project",

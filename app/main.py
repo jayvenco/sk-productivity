@@ -13,7 +13,6 @@ from app.routes.snippets import router as snippets_router
 from app.routes.tags import router as tags_router
 from app.routes.auth import router as auth_router
 from app.routes.backup import router as backup_router
-from app.routes.stickies import router as stickies_router
 from app.routes.calendar import router as calendar_router
 from app.routes.reports import router as reports_router
 from app.routes.background import router as background_router
@@ -40,7 +39,6 @@ app.include_router(snippets_router)
 app.include_router(tags_router)
 app.include_router(auth_router)
 app.include_router(backup_router)
-app.include_router(stickies_router)
 app.include_router(calendar_router)
 app.include_router(reports_router)
 app.include_router(background_router)

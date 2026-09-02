@@ -12,7 +12,6 @@
     { href: '/pomodoro', label: 'Timer', icon: '⏱' },
     { href: '/wiki', label: 'Wiki', icon: '📖' },
     { href: '/snippets', label: 'Code', icon: '💻' },
-    { href: '/stickies', label: 'Stickies', icon: '📌' },
     { href: '/tags', label: 'Tags', icon: '🏷️' },
     { href: '/reports', label: 'Rapport', icon: '📊' },
     { href: '/settings', label: '⚙', icon: '' },
