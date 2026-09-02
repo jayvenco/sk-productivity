@@ -33,28 +33,36 @@ a:hover { color: var(--accent-hover); }
 
 button {
   cursor: pointer;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--radius);
   padding: 6px 12px;
   font-size: 13px;
   font-weight: 500;
   transition: all 0.15s;
   font-family: inherit;
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  backdrop-filter: blur(4px);
 }
 
-button.primary { background: var(--accent); color: white; }
-button.primary:hover { background: var(--accent-hover); }
+button:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.15);
+}
+
+button.primary { background: rgba(239, 131, 84, 0.2); color: var(--accent); border-color: rgba(239, 131, 84, 0.3); }
+button.primary:hover { background: rgba(239, 131, 84, 0.3); border-color: rgba(239, 131, 84, 0.5); }
 
 button.secondary {
-  background: var(--bg-hover);
+  background: rgba(255,255,255,0.04);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
-button.secondary:hover { background: var(--border); }
+button.secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); }
 
-button.danger { background: var(--red); color: white; }
-button.danger:hover { opacity: 0.85; }
+button.danger { background: rgba(252, 129, 129, 0.15); color: var(--red); border-color: rgba(252, 129, 129, 0.3); }
+button.danger:hover { background: rgba(252, 129, 129, 0.25); border-color: rgba(252, 129, 129, 0.5); }
 
 input, textarea, select {
   background: var(--bg-card);
