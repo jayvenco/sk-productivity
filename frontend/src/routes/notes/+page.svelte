@@ -9,8 +9,15 @@
   let items = $state([]);
   let editing = $state(null);
   let form = $state({ title: '', content: '', color: '#262a36', tagIds: [] });
+  let showForm = $state(false);
   let error = $state('');
   let loading = $state(true);
+
+  function openNew() {
+    showForm = true;
+    editing = null;
+    form = { title: '', content: '', color: '#262a36', tagIds: [] };
+  }
 
   function renderMarkdown(text) {
     if (!text) return '';
@@ -57,6 +64,7 @@
       }
       editing = null;
       form = { title: '', content: '', color: '#262a36', tagIds: [] };
+      showForm = false;
       items = (await api.notes.list()).items;
     } catch (e) { error = e.message; }
   }
@@ -77,12 +85,14 @@
 
   function cancel() {
     editing = null;
+    showForm = false;
     form = { title: '', content: '', color: '#262a36', tagIds: [] };
   }
 </script>
 
 <div class="header">
   <h1>Notities</h1>
+  <button class="primary" onclick={openNew}>+ Nieuwe notitie</button>
 </div>
 
 {#if error}
@@ -92,6 +102,7 @@
 {#if loading}
   <p class="muted">Laden...</p>
 {:else}
+  {#if showForm || editing}
   <div class="card form-card">
     <h3>{editing ? 'Bewerk notitie' : 'Nieuwe notitie'}</h3>
     <div class="flex-col gap-2">
@@ -101,10 +112,11 @@
       <div class="flex gap-2 items-center">
         <ColorPicker bind:value={form.color} />
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
-        {#if editing}<button class="secondary" onclick={cancel}>Annuleren</button>{/if}
+        <button class="secondary" onclick={cancel}>Annuleren</button>
       </div>
     </div>
   </div>
+  {/if}
 
   <div class="items-list">
     {#if items.length === 0}
