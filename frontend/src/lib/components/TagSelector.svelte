@@ -7,10 +7,6 @@
   let allTags = $state([]);
   let attached = $state([]);
   let showPicker = $state(false);
-  let newTagName = $state('');
-  let newTagColor = $state('#4f8cff');
-
-  const colors = ['#4f8cff','#4caf50','#ff9800','#f44336','#9c27b0','#00bcd4','#e91e63','#607d8b','#ff5722','#8bc34a'];
 
   onMount(async () => {
     try { allTags = (await api.tags.list()).items; } catch (e) {}
@@ -30,20 +26,6 @@
         await api.tags.attach(tag.id, itemType, itemId);
       }
       await loadAttached();
-    } catch (e) { console.error(e); }
-  }
-
-  async function createAndAttach() {
-    if (!newTagName.trim()) return;
-    try {
-      const tag = await api.tags.create({ name: newTagName.trim(), color: newTagColor });
-      allTags = [...allTags, tag];
-      if (itemId) {
-        await api.tags.attach(tag.id, itemType, itemId);
-        await loadAttached();
-      }
-      newTagName = '';
-      showPicker = false;
     } catch (e) { console.error(e); }
   }
 </script>
@@ -69,28 +51,17 @@
         {#each allTags as tag (tag.id)}
           <button
             class="tag-option"
-            style="background: {tag.color}22; color: {tag.color}; border: 1px solid {tag.color}44;"
+            class:selected={attached.find(t => t.id === tag.id)}
+            style="background: {tag.color}22; color: {tag.color}; border: 1px solid {attached.find(t => t.id === tag.id) ? tag.color : tag.color}44;"
             onclick={() => toggleAttach(tag)}
           >
             {tag.name}
           </button>
         {/each}
       </div>
-      <div class="flex gap-2" style="margin-top: 8px;">
-        <input bind:value={newTagName} placeholder="Nieuwe tag..." aria-label="Nieuwe tag naam" />
-        <div class="color-options" role="radiogroup" aria-label="Kleur">
-          {#each colors as c}
-            <button
-              class="color-dot"
-              class:selected={newTagColor === c}
-              style="background: {c};"
-              onclick={() => newTagColor = c}
-              aria-label={c}
-            ></button>
-          {/each}
-        </div>
-        <button class="primary" onclick={createAndAttach}>Maak</button>
-      </div>
+      {#if allTags.length === 0}
+        <p class="muted">Maak eerst tags aan op de Tags pagina 🏷️</p>
+      {/if}
     </div>
   {/if}
 </div>
@@ -137,14 +108,6 @@
     cursor: pointer;
     font-weight: 500;
   }
-  .color-options { display: flex; gap: 4px; align-items: center; }
-  .color-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    cursor: pointer;
-    padding: 0;
-  }
-  .color-dot.selected { border-color: white; }
+  .tag-option.selected { transform: scale(1.05); }
+  .muted { color: var(--text-muted); font-size: 12px; font-style: italic; }
 </style>
