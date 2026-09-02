@@ -1,6 +1,7 @@
 <script>
   import '../app.css';
   import Sidebar from '$lib/components/Sidebar.svelte';
+  import PomoBar from '$lib/components/PomoBar.svelte';
   import { isAuthenticated, clearAuth } from '$lib/api';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
@@ -40,6 +41,7 @@
     <main class="main-content">
       {@render children()}
     </main>
+    <PomoBar />
   </div>
 {/if}
 
@@ -56,6 +58,7 @@
     margin: 0 auto;
     width: 100%;
     padding-left: 220px;
+    padding-bottom: 60px;
   }
 
   .main-content.no-sidebar {
