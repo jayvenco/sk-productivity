@@ -1,14 +1,12 @@
 <script>
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
-  import TagSelector from '$lib/components/TagSelector.svelte';
   import ColorPicker from '$lib/components/ColorPicker.svelte';
   import TextEditor from '$lib/components/TextEditor.svelte';
-  import TagPicker from '$lib/components/TagPicker.svelte';
 
   let items = $state([]);
   let editing = $state(null);
-  let form = $state({ title: '', content: '', color: '#262a36', tagIds: [] });
+  let form = $state({ title: '', content: '', color: '#262a36' });
   let showForm = $state(false);
   let error = $state('');
   let loading = $state(true);
@@ -16,7 +14,7 @@
   function openNew() {
     showForm = true;
     editing = null;
-    form = { title: '', content: '', color: '#262a36', tagIds: [] };
+    form = { title: '', content: '', color: '#262a36' };
   }
 
   function renderMarkdown(text) {
@@ -56,14 +54,9 @@
     error = '';
     try {
       if (editing) await api.notes.update(editing, form);
-      else {
-        const item = await api.notes.create(form);
-        for (const tid of form.tagIds) {
-          await api.tags.attach(tid, 'note', item.id).catch(() => {});
-        }
-      }
+      else await api.notes.create(form);
       editing = null;
-      form = { title: '', content: '', color: '#262a36', tagIds: [] };
+      form = { title: '', content: '', color: '#262a36' };
       showForm = false;
       items = (await api.notes.list()).items;
     } catch (e) { error = e.message; }
@@ -71,7 +64,7 @@
 
   function edit(item) {
     editing = item.id;
-    form = { title: item.title, content: item.content, color: item.color || '#262a36', tagIds: [] };
+    form = { title: item.title, content: item.content, color: item.color || '#262a36' };
   }
 
   async function remove(id) {
@@ -86,7 +79,7 @@
   function cancel() {
     editing = null;
     showForm = false;
-    form = { title: '', content: '', color: '#262a36', tagIds: [] };
+    form = { title: '', content: '', color: '#262a36' };
   }
 </script>
 
@@ -108,7 +101,6 @@
     <div class="flex-col gap-2">
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
       <TextEditor bind:value={form.content} placeholder="Schrijf hier..." rows={6} />
-      <TagPicker bind:tagIds={form.tagIds} />
       <div class="flex gap-2 items-center">
         <ColorPicker bind:value={form.color} />
         <button class="primary" onclick={save}>{editing ? 'Opslaan' : 'Toevoegen'}</button>
@@ -133,10 +125,7 @@
               <button class="danger small" onclick={() => remove(item.id)} title="Verwijder">✕</button>
             </div>
           </div>
-          <div class="card-footer">
-            <TagSelector itemType="note" itemId={item.id} />
-            <span class="date">{new Date(item.created_at).toLocaleDateString('nl-NL')}</span>
-          </div>
+          <span class="date">{new Date(item.created_at).toLocaleDateString('nl-NL')}</span>
         </div>
       {/each}
     {/if}
@@ -218,13 +207,6 @@
   .preview :global(.bullet) {
     display: block;
     padding-left: 4px;
-  }
-  .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    margin-top: auto;
   }
   .date { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
   .error-msg { background: #3a1a1a; border: 1px solid var(--red); padding: 12px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; }
