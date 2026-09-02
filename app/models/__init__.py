@@ -2,7 +2,7 @@ from app.database import Base
 from app.models.notes import Note
 from app.models.tasks import Task
 from app.models.kanban import KanbanCard, KanbanColumn, KanbanSwimlane
-from app.models.pomodoro import PomodoroSession
+from app.models.pomodoro import PomodoroSession, PomoStatus
 from app.models.wiki import WikiPage
 from app.models.snippets import Snippet
 from app.models.settings import Setting
@@ -18,6 +18,7 @@ __all__ = [
     "KanbanColumn",
     "KanbanSwimlane",
     "PomodoroSession",
+    "PomoStatus",
     "WikiPage",
     "Snippet",
     "Setting",

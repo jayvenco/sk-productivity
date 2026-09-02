@@ -66,6 +66,10 @@ def _migrate_schema():
         "snippets": [
             ("project_id", "integer"),
         ],
+        "pomodoro": [
+            ("status", "varchar(20)"),
+            ("elapsed_seconds", "integer"),
+        ],
     }
 
     for table, cols in columns_to_add.items():
@@ -80,6 +84,25 @@ def _migrate_schema():
                     logging.info(f"Migrated: added {table}.{col_name}")
                 except Exception as e:
                     logging.warning(f"Could not add {table}.{col_name}: {e}")
+
+    # ── Migrate old pomodoro data: completed bool → status enum ──
+    existing = _get_columns("pomodoro")
+    if "status" in existing and "completed" in existing:
+        try:
+            with engine.connect() as conn:
+                conn.execute(
+                    text("UPDATE pomodoro SET status = 'completed' WHERE completed = 1 AND status IS NULL")
+                )
+                conn.execute(
+                    text("UPDATE pomodoro SET status = 'running' WHERE completed = 0 AND status IS NULL")
+                )
+                conn.execute(
+                    text("UPDATE pomodoro SET elapsed_seconds = CAST((julianday(COALESCE(ended_at, datetime('now'))) - julianday(started_at)) * 86400 AS INTEGER) WHERE elapsed_seconds IS NULL")
+                )
+                conn.commit()
+            logging.info("Migrated old pomodoro sessions to new status/enum")
+        except Exception as e:
+            logging.warning(f"Could not migrate pomodoro data: {e}")
 
 
 def _migrate_default_admin(db):

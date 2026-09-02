@@ -99,8 +99,12 @@ export const api = {
   pomodoro: {
     status: () => request('/pomodoro/status'),
     start: (data) => request('/pomodoro/start', { method: 'POST', body: JSON.stringify(data) }),
-    stop: () => request('/pomodoro/stop', { method: 'POST' }),
+    pause: (id, elapsed) => request(`/pomodoro/pause/${id}?elapsed=${elapsed}`, { method: 'POST' }),
+    resume: (id) => request(`/pomodoro/resume/${id}`, { method: 'POST' }),
+    stop: (id, elapsed) => request(`/pomodoro/stop/${id}?elapsed=${elapsed}`, { method: 'POST' }),
     list: () => request('/pomodoro'),
+    history: (limit = 50) => request(`/pomodoro/history?limit=${limit}`),
+    delete: (id) => request(`/pomodoro/${id}`, { method: 'DELETE' }),
     report: (params) => request(`/pomodoro/report?days=${params.days||30}${params.item_type ? `&item_type=${params.item_type}` : ''}${params.item_id ? `&item_id=${params.item_id}` : ''}`),
   },
 
