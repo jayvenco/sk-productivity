@@ -208,6 +208,23 @@ export const themes = {
       '--blue': '#246fe0',
     },
   },
+  rsyncwebui: {
+    name: 'RsyncWebUI',
+    icon: '🌊',
+    colors: {
+      '--bg': '#0d1315',
+      '--bg-card': '#141f22',
+      '--bg-hover': '#1f2f34',
+      '--border': '#22343a',
+      '--text': '#e2edef',
+      '--text-muted': '#7d959c',
+      '--accent': '#3fcfc0',
+      '--accent-hover': '#5cd9cc',
+      '--green': '#45c982',
+      '--red': '#ee5f72',
+      '--blue': '#3fcfc0',
+    },
+  },
 };
 
 export const gradients = [
