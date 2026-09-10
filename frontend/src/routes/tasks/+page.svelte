@@ -186,9 +186,8 @@
                   <div class="td-item-meta">
                     {#if item.due_date}
                       {@const d = new Date(item.due_date)}
-                      {@const today = new Date()}
-                      {@const overdue = d < today && item.status !== 'completed'}
-                      <span class="td-due" class:overdue>📅 {d.toLocaleDateString('nl-NL', {day:'numeric',month:'short'})}</span>
+                      {@const overdue = d < new Date() && item.status !== 'completed'}
+                      <span class="td-dot" class:overdue title="Deadline: {d.toLocaleDateString('nl-NL')}"></span>
                     {/if}
                     <TagSelector itemType="task" itemId={item.id} />
                   </div>
@@ -274,9 +273,9 @@
   .td-item-content { flex: 1; min-width: 0; }
   .td-item-title { display: block; font-size: 14px; font-weight: 500; color: var(--text); }
   .td-item-desc { display: block; font-size: 12px; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .td-item-meta { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
-  .td-due { font-size: 11px; color: var(--text-muted); }
-  .td-due.overdue { color: var(--red); font-weight: 600; }
+  .td-item-meta { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
+  .td-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; cursor: help; }
+  .td-dot.overdue { background: var(--red); }
   .td-del { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 4px; opacity: 0; flex-shrink: 0; }
   .td-item-row:hover .td-del { opacity: 1; }
   .td-del:hover { color: var(--red); }
