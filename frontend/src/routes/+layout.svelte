@@ -53,11 +53,9 @@
 
   .main-content {
     flex: 1;
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 24px 32px;
     width: 100%;
-    padding-left: 220px;
+    padding-left: calc(var(--sidebar-w) + 20px);
     padding-bottom: 60px;
   }
 

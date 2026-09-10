@@ -73,11 +73,26 @@ def api_root():
     }
 
 
-# ── Static Frontend ────────────────────────────────────────────────
+# ── Static Frontend (SPA catch-all) ──────────────────────────
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
-if STATIC_DIR.is_dir() and any(STATIC_DIR.iterdir()):
-    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+STATIC_INDEX = STATIC_DIR / "index.html"
+
+if STATIC_INDEX.exists():
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/_app", StaticFiles(directory=str(STATIC_DIR / "_app")), name="assets")
+
+    @app.get("/{full_path:path}")
+    def spa_catch_all(full_path: str = ""):
+        """Serve frontend or index.html for SPA routing."""
+        if not full_path:
+            return FileResponse(STATIC_INDEX)
+        fp = STATIC_DIR / full_path
+        if fp.is_file():
+            return FileResponse(fp)
+        return FileResponse(STATIC_INDEX)
 
 
 if __name__ == "__main__":

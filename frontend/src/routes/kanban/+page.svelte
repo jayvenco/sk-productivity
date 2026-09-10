@@ -7,7 +7,7 @@
   let columns = $state([]);
   let swimlanes = $state([]);
   let cardsByCell = $state({});
-  let form = $state({ title: '', description: '', tagIds: [] });
+  let form = $state({ title: '', description: '', tagIds: [], column_id: null, swimlane_id: null });
   let colForm = $state({ name: '', color: '#6b7280' });
   let swForm = $state({ name: '', color: '#444466' });
   let editingCol = $state(null);
@@ -53,16 +53,16 @@
     error = '';
     if (!form.title) return;
     try {
-      const target = columns[0];
-      if (!target) { error = 'Maak eerst een kolom aan'; return; }
-      const firstSw = swimlanes.length ? swimlanes[0] : null;
-      const key = `${target.id}-${firstSw?.id || null}`;
+      const targetCol = form.column_id ? columns.find(c => c.id === form.column_id) : columns[0];
+      if (!targetCol) { error = 'Maak eerst een kolom aan'; return; }
+      const targetSw = form.swimlane_id ? swimlanes.find(s => s.id === form.swimlane_id) : (swimlanes.length ? swimlanes[0] : null);
+      const key = `${targetCol.id}-${targetSw?.id || null}`;
       const cards = cardsByCell[key] || [];
-      const item = await api.kanban.create({ title: form.title, description: form.description, column_id: target.id, swimlane_id: firstSw?.id || null, position: cards.length });
+      const item = await api.kanban.create({ title: form.title, description: form.description, column_id: targetCol.id, swimlane_id: targetSw?.id || null, position: cards.length });
       for (const tid of form.tagIds) {
         await api.tags.attach(tid, 'kanban', item.id).catch(() => {});
       }
-      form = { title: '', description: '', tagIds: [] };
+      form = { title: '', description: '', tagIds: [], column_id: null, swimlane_id: null };
       await load();
     } catch (e) { error = e.message; }
   }
@@ -175,6 +175,20 @@
   <div class="card form-card">
     <div class="flex gap-2">
       <input bind:value={form.title} placeholder="Kaart titel" class="flex-1" aria-label="Titel" />
+      <select bind:value={form.column_id} aria-label="Kolom" class="sw-select">
+        <option value={null}>— Kolom —</option>
+        {#each columns as col (col.id)}
+          <option value={col.id}>{col.name}</option>
+        {/each}
+      </select>
+      {#if swimlanes.length > 0}
+        <select bind:value={form.swimlane_id} aria-label="Swimlane" class="sw-select">
+          <option value={null}>— Laag —</option>
+          {#each swimlanes as sw (sw.id)}
+            <option value={sw.id}>{sw.name}</option>
+          {/each}
+        </select>
+      {/if}
       <button class="primary" onclick={createCard}>Toevoegen</button>
     </div>
     <div style="margin-top: 8px;">
@@ -285,6 +299,7 @@
   .icon-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; font-size: 14px; opacity: 0.6; transition: opacity 0.15s; }
   .icon-btn:hover { opacity: 1; }
   .col-actions { display: flex; gap: 4px; }
+  .sw-select { width: auto; min-width: 120px; }
 
   /* Grid layout (zonder swimlanes) */
   .board { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }

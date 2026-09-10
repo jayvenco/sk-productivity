@@ -108,7 +108,7 @@ textarea { font-family: 'SF Mono', 'Fira Code', monospace; resize: vertical; min
 .flex-1 { flex: 1; }
 
 .grid { display: grid; gap: 12px; }
-.grid-3 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
 
 .badge {
   padding: 2px 7px;
