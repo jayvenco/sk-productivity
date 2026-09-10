@@ -10,6 +10,7 @@ from app.models.notes import Note
 def _note_to_json(note):
     return _format_item({
         "id": note.id, "title": note.title, "content": note.content,
+        "color": note.color, "due_date": note.due_date,
         "created_at": note.created_at, "updated_at": note.updated_at,
     })
 
@@ -44,11 +45,13 @@ def register_notes_tools(mcp, mcp_prefix="swissknife"):
             db.close()
 
     @mcp.tool(name=f"{mcp_prefix}_notes_create")
-    def notes_create(title: str, content: str = "") -> str:
-        """Create a new note. Returns the created note."""
+    def notes_create(title: str, content: str = "", due_date: str = None) -> str:
+        """Create a new note. Returns the created note. due_date: ISO date string (e.g. '2026-09-15')."""
         db = SessionLocal()
         try:
-            note = Note(title=title, content=content)
+            from datetime import datetime
+            parsed_due = datetime.fromisoformat(due_date) if due_date else None
+            note = Note(title=title, content=content, due_date=parsed_due)
             db.add(note)
             db.commit()
             db.refresh(note)
@@ -57,8 +60,8 @@ def register_notes_tools(mcp, mcp_prefix="swissknife"):
             db.close()
 
     @mcp.tool(name=f"{mcp_prefix}_notes_edit")
-    def notes_edit(note_id: int, title: str = None, content: str = None) -> str:
-        """Edit an existing note. Only provided fields are updated."""
+    def notes_edit(note_id: int, title: str = None, content: str = None, due_date: str = None) -> str:
+        """Edit an existing note. Only provided fields are updated. due_date: ISO date or empty string to clear."""
         db = SessionLocal()
         try:
             note = db.query(Note).filter(Note.id == note_id).first()
@@ -68,6 +71,9 @@ def register_notes_tools(mcp, mcp_prefix="swissknife"):
                 note.title = title
             if content is not None:
                 note.content = content
+            if due_date is not None:
+                from datetime import datetime
+                note.due_date = datetime.fromisoformat(due_date) if due_date else None
             db.commit()
             db.refresh(note)
             return _note_to_json(note)

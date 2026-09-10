@@ -6,7 +6,7 @@
 
   let items = $state([]);
   let editing = $state(null);
-  let form = $state({ title: '', content: '', color: '#262a36' });
+  let form = $state({ title: '', content: '', color: '#262a36', due_date: '' });
   let showForm = $state(false);
   let error = $state('');
   let loading = $state(true);
@@ -14,7 +14,7 @@
   function openNew() {
     showForm = true;
     editing = null;
-    form = { title: '', content: '', color: '#262a36' };
+    form = { title: '', content: '', color: '#262a36', due_date: '' };
   }
 
   function renderMarkdown(text) {
@@ -53,10 +53,13 @@
   async function save() {
     error = '';
     try {
-      if (editing) await api.notes.update(editing, form);
-      else await api.notes.create(form);
+      const payload = { ...form };
+      if (form.due_date) payload.due_date = new Date(form.due_date).toISOString();
+      else payload.due_date = null;
+      if (editing) await api.notes.update(editing, payload);
+      else await api.notes.create(payload);
       editing = null;
-      form = { title: '', content: '', color: '#262a36' };
+      form = { title: '', content: '', color: '#262a36', due_date: '' };
       showForm = false;
       items = (await api.notes.list()).items;
     } catch (e) { error = e.message; }
@@ -64,7 +67,12 @@
 
   function edit(item) {
     editing = item.id;
-    form = { title: item.title, content: item.content, color: item.color || '#262a36' };
+    form = {
+      title: item.title,
+      content: item.content,
+      color: item.color || '#262a36',
+      due_date: item.due_date ? item.due_date.slice(0, 10) : '',
+    };
   }
 
   async function remove(id) {
@@ -79,7 +87,7 @@
   function cancel() {
     editing = null;
     showForm = false;
-    form = { title: '', content: '', color: '#262a36' };
+    form = { title: '', content: '', color: '#262a36', due_date: '' };
   }
 </script>
 
@@ -100,6 +108,7 @@
     <h3>{editing ? 'Bewerk notitie' : 'Nieuwe notitie'}</h3>
     <div class="flex-col gap-2">
       <input bind:value={form.title} placeholder="Titel" aria-label="Titel" />
+      <input type="date" bind:value={form.due_date} aria-label="Deadline" />
       <TextEditor bind:value={form.content} placeholder="Schrijf hier..." rows={6} />
       <div class="flex gap-2 items-center">
         <ColorPicker bind:value={form.color} />
@@ -125,7 +134,14 @@
               <button class="danger small" onclick={() => remove(item.id)} title="Verwijder">✕</button>
             </div>
           </div>
-          <span class="date">{new Date(item.created_at).toLocaleDateString('nl-NL')}</span>
+          <span class="date">
+            {#if item.due_date}
+              {@const d = new Date(item.due_date)}
+              {@const overdue = d < new Date()}
+              <span class="due-badge" class:overdue>📅 {d.toLocaleDateString('nl-NL', {day:'numeric',month:'short'})}</span>
+            {/if}
+            {new Date(item.created_at).toLocaleDateString('nl-NL')}
+          </span>
         </div>
       {/each}
     {/if}
@@ -209,6 +225,8 @@
     padding-left: 4px;
   }
   .date { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  .due-badge { color: var(--accent); font-weight: 500; }
+  .due-badge.overdue { color: var(--red); font-weight: 600; }
   .error-msg { background: #3a1a1a; border: 1px solid var(--red); padding: 12px; border-radius: var(--radius); margin-bottom: 16px; font-size: 14px; }
   .muted { color: var(--text-muted); font-style: italic; }
   button.small { padding: 4px 8px; font-size: 11px; }

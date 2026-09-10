@@ -25,12 +25,13 @@
   }
 
   function countByType(items) {
-    let tasks = 0, kanban = 0;
+    let tasks = 0, kanban = 0, notes = 0;
     for (const i of items) {
       if (i.item_type === 'task') tasks++;
-      else kanban++;
+      else if (i.item_type === 'kanban') kanban++;
+      else notes++;
     }
-    return { tasks, kanban };
+    return { tasks, kanban, notes };
   }
 
   function prevMonth() { if (currentMonth === 0) { currentMonth = 11; currentYear--; } else currentMonth--; }
@@ -60,12 +61,11 @@
         {@const day = i + 1}
         {@const items = getDeadlinesForDay(day)}
         {@const counts = countByType(items)}
-        <span class="cal-day" class:has-deadline={items.length > 0} title={items.length > 0 ? `${items.length} deadline(s)` : ''}>
+        <span class="cal-day" class:has-deadline={items.length > 0} title={items.length > 0 ? `${items.length} deadline(s): ${items.map(i => i.item_type).join(', ')}` : ''}>
           {day}
           {#if items.length > 0}
             <span class="cal-dots">
-              {#if counts.tasks > 0}<span class="dot task-dot"></span>{/if}
-              {#if counts.kanban > 0}<span class="dot kanban-dot"></span>{/if}
+              <span class="dot note-dot"></span>
             </span>
           {/if}
         </span>
@@ -164,11 +164,10 @@
   }
 
   .dot {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
   }
 
-  .task-dot { background: var(--accent); }
-  .kanban-dot { background: var(--blue); }
+  .note-dot { background: var(--red); }
 </style>

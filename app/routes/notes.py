@@ -12,12 +12,14 @@ class NoteCreate(BaseModel):
     title: str
     content: str = ""
     color: Optional[str] = None
+    due_date: Optional[datetime] = None
 
 
 class NoteUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     color: Optional[str] = None
+    due_date: Optional[datetime] = None
 
 
 class NoteResponse(BaseModel):
@@ -25,6 +27,7 @@ class NoteResponse(BaseModel):
     title: str
     content: str
     color: Optional[str] = None
+    due_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -59,7 +62,7 @@ def get_note(note_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=NoteResponse, status_code=201)
 def create_note(data: NoteCreate, db: Session = Depends(get_db)):
-    note = Note(title=data.title, content=data.content, color=data.color)
+    note = Note(title=data.title, content=data.content, color=data.color, due_date=data.due_date)
     db.add(note)
     db.commit()
     db.refresh(note)
@@ -77,6 +80,8 @@ def update_note(note_id: int, data: NoteUpdate, db: Session = Depends(get_db)):
         note.content = data.content
     if data.color is not None:
         note.color = data.color
+    if data.due_date is not None:
+        note.due_date = data.due_date
     db.commit()
     db.refresh(note)
     return NoteResponse.model_validate(note)

@@ -145,8 +145,8 @@ def stop_pomodoro(session_id: int, elapsed: int = Query(0), db: Session = Depend
     if session.status == PomoStatus.completed:
         raise HTTPException(status_code=400, detail="Session already completed")
     session.status = PomoStatus.completed
-    session.ended_at = datetime.now(timezone.utc)
-    session.elapsed_seconds = elapsed if elapsed > 0 else int((session.ended_at - session.started_at).total_seconds())
+    session.ended_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    session.elapsed_seconds = elapsed if elapsed > 0 else int((session.ended_at - session.started_at).total_seconds() if session.started_at else 0)
     db.commit()
     db.refresh(session)
     return PomodoroResponse.model_validate(session)

@@ -11,6 +11,7 @@ from app.database import get_db
 from app.routes.auth import require_auth
 from app.models.tasks import Task, TaskStatus
 from app.models.kanban import KanbanCard, KanbanStatus
+from app.models.notes import Note
 
 router = APIRouter(prefix="/api/calendar", tags=["calendar"])
 
@@ -18,7 +19,7 @@ router = APIRouter(prefix="/api/calendar", tags=["calendar"])
 class DeadlineItem(BaseModel):
     id: int
     title: str
-    item_type: str  # "task" or "kanban"
+    item_type: str  # "task", "kanban", or "note"
     due_date: str
     status: str
 
@@ -58,6 +59,18 @@ def get_deadlines(days: int = 60, auth: str = Depends(require_auth), db: Session
             id=c.id, title=c.title,
             item_type="kanban", due_date=c.due_date.strftime("%Y-%m-%d"),
             status=c.status.value if c.status else "todo",
+        ))
+
+    # Notes with due_date
+    notes = db.query(Note).filter(
+        Note.due_date.isnot(None),
+        func.date(Note.due_date) <= future,
+    ).all()
+    for n in notes:
+        deadlines.append(DeadlineItem(
+            id=n.id, title=n.title,
+            item_type="note", due_date=n.due_date.strftime("%Y-%m-%d"),
+            status="",
         ))
 
     return CalendarResponse(deadlines=deadlines)

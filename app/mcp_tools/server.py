@@ -25,6 +25,9 @@ from app.mcp_tools.tools_snippets import register_snippets_tools
 from app.mcp_tools.tools_tags import register_tags_tools
 
 
+from app.mcp_tools.tools_calendar import register_calendar_tools
+
+
 def create_server():
     from mcp.server.fastmcp import FastMCP
 
@@ -42,6 +45,7 @@ def create_server():
     register_wiki_tools(mcp, mcp_prefix="mcp_swissknife")
     register_snippets_tools(mcp, mcp_prefix="mcp_swissknife")
     register_tags_tools(mcp, mcp_prefix="mcp_swissknife")
+    register_calendar_tools(mcp, mcp_prefix="mcp_swissknife")
 
     return mcp
 
